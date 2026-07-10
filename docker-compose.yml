@@ -1,0 +1,51 @@
+# ScreenPilot full stack.
+#   Everything:  docker compose up -d --build   ->  http://localhost:8090
+#   DB only (for local ./mvnw + npm run dev):    docker compose up -d postgres
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: signage-postgres
+    environment:
+      POSTGRES_DB: signage
+      POSTGRES_USER: signage
+      POSTGRES_PASSWORD: signage
+    ports:
+      - "5433:5432"
+    volumes:
+      - signage_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U signage -d signage"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  backend:
+    build: .
+    container_name: screenpilot-backend
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/signage
+      SPRING_DATASOURCE_USERNAME: signage
+      SPRING_DATASOURCE_PASSWORD: signage
+      APP_CORS_ALLOWED_ORIGINS: http://localhost:8090,http://localhost:5174,http://localhost:4173
+      # APP_JWT_SECRET: override-me-in-production
+    ports:
+      - "8081:8081"
+    volumes:
+      # bind-mount so Docker and local-dev runs share the same media files
+      - ./uploads:/app/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    container_name: screenpilot-frontend
+    ports:
+      - "8090:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  signage_pgdata:

@@ -1,0 +1,49 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: screenpilot
+  datasource:
+    url: jdbc:postgresql://localhost:5433/signage
+    username: signage
+    password: signage
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  servlet:
+    multipart:
+      max-file-size: ${app.storage.max-file-mb:500}MB
+      max-request-size: 2GB
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
+app:
+  jwt:
+    # Dev-only secret. Override via APP_JWT_SECRET in production.
+    secret: screenpilot-signage-dev-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz
+    access-minutes: 30
+    refresh-days: 14
+  cors:
+    allowed-origins: http://localhost:5174,http://localhost:4173
+  storage:
+    dir: ./uploads
+    max-file-mb: 500
+  player:
+    offline-after-seconds: 90
+    pairing-code-ttl-minutes: 15
+  seed:
+    admin-email: admin@screenpilot.in
+    admin-password: ScreenPilot@123
+
+logging:
+  level:
+    com.screenpilot.signage: INFO

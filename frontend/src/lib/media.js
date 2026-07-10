@@ -1,0 +1,24 @@
+import { API_BASE } from '../api/client'
+import { Film, Image as ImageIcon, FileText } from 'lucide-react'
+
+export const mediaThumbUrl = (id) => `${API_BASE}/api/media/${id}/thumb`
+export const mediaFileUrl = (id) => `${API_BASE}/api/media/${id}/file`
+
+export const TYPE_ICON = { VIDEO: Film, IMAGE: ImageIcon, PDF: FileText }
+export const TYPE_LABEL = { VIDEO: 'Video', IMAGE: 'Image', PDF: 'PDF' }
+
+/** Same rules as the backend: videos full length, others use configured duration. */
+export function effectiveItemDuration(item) {
+  if (item.itemType === 'MEDIA' && item.media) {
+    if (item.media.type === 'VIDEO') return item.media.durationSeconds ?? 30
+    return item.durationSeconds ?? 10
+  }
+  return item.durationSeconds ?? 20
+}
+
+export function youTubeId(url) {
+  const m = String(url || '').match(
+    /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/,
+  )
+  return m ? m[1] : null
+}
