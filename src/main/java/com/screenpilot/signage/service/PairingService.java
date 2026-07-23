@@ -62,9 +62,10 @@ public class PairingService {
             pairing.setStatus(PairingCode.Status.EXPIRED);
             pairingRepository.save(pairing);
         }
-        if (pairing.getStatus() == PairingCode.Status.PAIRED && pairing.getScreen() != null) {
+        if (pairing.getStatus() == PairingCode.Status.PAIRED && pairing.getScreen() != null
+                && pairing.getDeviceTokenPlain() != null) {
             Screen screen = pairing.getScreen();
-            return new PlayerDtos.PairPollResponse("PAIRED", screen.getDeviceToken(), screen.getId(), screen.getName());
+            return new PlayerDtos.PairPollResponse("PAIRED", pairing.getDeviceTokenPlain(), screen.getId(), screen.getName());
         }
         return new PlayerDtos.PairPollResponse(pairing.getStatus().name(), null, null, null);
     }
@@ -83,17 +84,31 @@ public class PairingService {
 
         ScreenDtos.ScreenResponse created = screenService.create(req.screen());
         Screen screen = screenRepository.findById(created.id()).orElseThrow();
-        screen.setDeviceToken(generateDeviceToken());
+        // DB stores only the SHA-256 hash; the plaintext rides the short-lived
+        // pairing row so the polling player can collect it once
+        String plainToken = generateDeviceToken();
+        screen.setDeviceToken(com.screenpilot.signage.security.TokenHasher.sha256Hex(plainToken));
         screen.setPaired(true);
         screenRepository.save(screen);
 
         pairing.setScreen(screen);
         pairing.setStatus(PairingCode.Status.PAIRED);
+        pairing.setDeviceTokenPlain(plainToken);
         pairingRepository.save(pairing);
 
         ScreenDtos.ScreenResponse dto = mapper.toDto(screen);
         events.screenUpdated(dto);
         return dto;
+    }
+
+    /** Clears plaintext tokens from expired pairing rows (they only exist for pickup). */
+    @org.springframework.scheduling.annotation.Scheduled(fixedDelay = 300000, initialDelay = 60000)
+    @Transactional
+    public void sweepExpiredPlaintextTokens() {
+        for (PairingCode pairing : pairingRepository.findByDeviceTokenPlainIsNotNullAndExpiresAtBefore(Instant.now())) {
+            pairing.setDeviceTokenPlain(null);
+            pairingRepository.save(pairing);
+        }
     }
 
     private String normalize(String code) {

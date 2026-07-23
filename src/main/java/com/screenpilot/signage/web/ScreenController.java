@@ -117,14 +117,32 @@ public class ScreenController {
                 .toList();
     }
 
-    /** Latest screenshot captured by the player for this screen. */
+    /**
+     * Latest screenshot captured by the player. Served with a signed URL
+     * (browsers' <img> tags cannot send the Authorization header), so the
+     * signature IS the access control here.
+     */
     @GetMapping("/{id}/screenshot")
-    @PreAuthorize("hasRole('VIEWER')")
-    public ResponseEntity<Resource> screenshot(@PathVariable UUID id) {
-        Resource res = commandService.latestScreenshot(id);
+    public ResponseEntity<Resource> screenshot(@PathVariable UUID id,
+                                               @RequestParam(required = false) Long exp,
+                                               @RequestParam(required = false) String sig) {
+        if (!com.screenpilot.signage.security.UrlSigner.instance().verify("screenshot:" + id, exp, sig)) {
+            throw com.screenpilot.signage.error.ApiException.forbidden("This screenshot link is invalid or has expired");
+        }
+        Resource res = commandService.latestScreenshotUnchecked(id);
         return ResponseEntity.ok()
                 .contentType(MediaType.IMAGE_JPEG)
                 .header(HttpHeaders.CACHE_CONTROL, "no-store")
                 .body(res);
+    }
+
+    /** Authenticated endpoint that mints a short-lived signed link for the <img> tag. */
+    @GetMapping("/{id}/screenshot-link")
+    @PreAuthorize("hasRole('VIEWER')")
+    public Map<String, String> screenshotLink(@PathVariable UUID id) {
+        screenService.getAccessible(id);
+        String url = "/api/screens/" + id + "/screenshot?"
+                + com.screenpilot.signage.security.UrlSigner.instance().signQuery("screenshot:" + id, 900);
+        return Map.of("url", url);
     }
 }

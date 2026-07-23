@@ -38,6 +38,10 @@ frontend/dist/
 
 ### Runtime data (media uploads, thumbnails, screenshots) ###
 uploads/
+backups/
+
+### Secrets ###
+.env
 
 ### OS ###
 Thumbs.db

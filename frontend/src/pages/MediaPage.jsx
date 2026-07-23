@@ -5,7 +5,7 @@ import clsx from 'clsx'
 import { api, errorMessage } from '../api/client'
 import { Card, PageHeader, Skeleton, EmptyState, Modal, Field, Spinner, Badge } from '../components/ui'
 import { fmtBytes, fmtSeconds, timeAgo } from '../lib/format'
-import { mediaThumbUrl, mediaFileUrl, TYPE_ICON, TYPE_LABEL } from '../lib/media'
+import { mediaThumbSrc, mediaFileSrc, TYPE_ICON, TYPE_LABEL } from '../lib/media'
 import { useAuth, hasRole } from '../auth/AuthContext'
 
 function Thumb({ asset, className }) {
@@ -20,7 +20,7 @@ function Thumb({ asset, className }) {
   }
   return (
     <img
-      src={mediaThumbUrl(asset.id)}
+      src={mediaThumbSrc(asset)}
       alt={asset.name}
       loading="lazy"
       onError={() => setFailed(true)}
@@ -36,13 +36,13 @@ function PreviewModal({ asset, onClose }) {
         <div>
           <div className="rounded-xl overflow-hidden bg-ink-900 flex items-center justify-center min-h-[300px]">
             {asset.type === 'VIDEO' && (
-              <video src={mediaFileUrl(asset.id)} controls autoPlay className="max-h-[60vh] w-full" />
+              <video src={mediaFileSrc(asset)} controls autoPlay className="max-h-[60vh] w-full" />
             )}
             {asset.type === 'IMAGE' && (
-              <img src={mediaFileUrl(asset.id)} alt={asset.name} className="max-h-[60vh] object-contain" />
+              <img src={mediaFileSrc(asset)} alt={asset.name} className="max-h-[60vh] object-contain" />
             )}
             {asset.type === 'PDF' && (
-              <iframe title={asset.name} src={mediaFileUrl(asset.id)} className="w-full h-[60vh] bg-white" />
+              <iframe title={asset.name} src={mediaFileSrc(asset)} className="w-full h-[60vh] bg-white" />
             )}
           </div>
           <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 text-sm text-ink-500">

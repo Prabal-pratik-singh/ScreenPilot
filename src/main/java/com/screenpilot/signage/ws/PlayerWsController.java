@@ -34,7 +34,9 @@ public class PlayerWsController {
         if (deviceToken == null || deviceToken.isBlank()) {
             return;
         }
-        Screen screen = screenRepository.findByDeviceToken(deviceToken).orElse(null);
+        Screen screen = screenRepository
+                .findByDeviceToken(com.screenpilot.signage.security.TokenHasher.sha256Hex(deviceToken))
+                .orElse(null);
         if (screen == null || !screen.isPaired()) {
             log.debug("Ignoring WS heartbeat with unknown device token");
             return;

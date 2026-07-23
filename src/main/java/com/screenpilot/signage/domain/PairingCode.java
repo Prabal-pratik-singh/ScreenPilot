@@ -29,6 +29,10 @@ public class PairingCode {
     @JoinColumn(name = "screen_id")
     private Screen screen;
 
+    /** Plaintext token held only until the player collects it; cleared on expiry. */
+    @Column(name = "device_token_plain")
+    private String deviceTokenPlain;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
@@ -55,6 +59,8 @@ public class PairingCode {
     public void setStatus(Status status) { this.status = status; }
     public Screen getScreen() { return screen; }
     public void setScreen(Screen screen) { this.screen = screen; }
+    public String getDeviceTokenPlain() { return deviceTokenPlain; }
+    public void setDeviceTokenPlain(String deviceTokenPlain) { this.deviceTokenPlain = deviceTokenPlain; }
     public Instant getCreatedAt() { return createdAt; }
     public Instant getExpiresAt() { return expiresAt; }
     public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }

@@ -23,9 +23,9 @@ public class JwtService {
     private final SecretKey key;
     private final AppProperties props;
 
-    public JwtService(AppProperties props) {
+    public JwtService(AppProperties props, SecretProvider secretProvider) {
         this.props = props;
-        this.key = Keys.hmacShaKeyFor(props.getJwt().getSecret().getBytes(StandardCharsets.UTF_8));
+        this.key = Keys.hmacShaKeyFor(secretProvider.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
     public String createAccessToken(User user) {

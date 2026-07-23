@@ -149,13 +149,18 @@ Works the same in both modes — use **http://localhost:8090** (Docker) or
 - **Consistent errors** — global exception handler returns
   `{timestamp, status, error, message, path, fieldErrors?}` for every failure.
 
-## Security notes (demo scope)
+## Security
 
-- Media binaries (`/api/media/{id}/file|thumb`) are served without auth so `<img>`/`<video>` tags
-  and player downloads work; front them with signed URLs or a CDN in production.
-- Device tokens are stored in plain text; hash them at rest in production.
-- JWT secret and DB credentials in `application.yml` are dev-only — override via environment
-  (`APP_JWT_SECRET`, `SPRING_DATASOURCE_*`).
+- **Signed media URLs** — media binaries (`/api/media/{id}/file|thumb`) and screenshots need no
+  login (browser `<img>`/`<video>` tags can't send Authorization headers) but require an
+  **HMAC-SHA256 signature with expiry** (`?exp=&sig=`) minted by the API. Leaked links die.
+- **Hashed device tokens** — the DB stores only `SHA-256(token)`; devices send the plaintext,
+  the server hashes and compares. A stolen database cannot impersonate screens.
+- **Secrets via environment** — copy `.env.example` to `.env` and set `APP_JWT_SECRET`
+  (≥32 chars) and `POSTGRES_PASSWORD`. Without it, Docker refuses to start the backend; bare
+  local runs generate an ephemeral secret (sessions reset on restart).
+- **Rate limiting** — in-memory per-IP sliding windows on `/api/auth/login`, `/api/auth/refresh`
+  and the pairing endpoints answer HTTP 429 to brute-force attempts.
 
 ## API sketch
 

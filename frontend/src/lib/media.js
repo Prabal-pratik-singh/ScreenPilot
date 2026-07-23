@@ -1,8 +1,10 @@
 import { API_BASE } from '../api/client'
 import { Film, Image as ImageIcon, FileText } from 'lucide-react'
 
-export const mediaThumbUrl = (id) => `${API_BASE}/api/media/${id}/thumb`
-export const mediaFileUrl = (id) => `${API_BASE}/api/media/${id}/file`
+// Media binaries need HMAC-signed links (?exp=&sig=) issued by the API —
+// use the signed relative URLs the DTOs carry, prefixed with the API base.
+export const mediaThumbSrc = (asset) => (asset?.thumbUrl ? `${API_BASE}${asset.thumbUrl}` : null)
+export const mediaFileSrc = (asset) => (asset?.fileUrl ? `${API_BASE}${asset.fileUrl}` : null)
 
 export const TYPE_ICON = { VIDEO: Film, IMAGE: ImageIcon, PDF: FileText }
 export const TYPE_LABEL = { VIDEO: 'Video', IMAGE: 'Image', PDF: 'PDF' }

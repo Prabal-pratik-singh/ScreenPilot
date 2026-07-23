@@ -48,8 +48,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/player/pair/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
-                        // media binaries are fetched by <img>/<video> tags and the player download manager
+                        // binaries fetched by <img>/<video> tags and player downloads:
+                        // no session possible there — HMAC-signed URLs are the access control
                         .requestMatchers(HttpMethod.GET, "/api/media/*/file", "/api/media/*/thumb").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/screens/*/screenshot").permitAll()
                         .requestMatchers("/api/player/**").hasRole("DEVICE")
                         .requestMatchers("/error").permitAll()
                         .anyRequest().authenticated())
@@ -66,7 +68,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(props.getCors().getAllowedOrigins());
+        // patterns (supports "*") — auth is header-token based, no cookies, so a
+        // permissive CORS default is safe and survives tunnels/domains/LAN IPs
+        config.setAllowedOriginPatterns(props.getCors().getAllowedOrigins());
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Content-Disposition"));

@@ -45,7 +45,6 @@ export const playerApi = {
   pollPairing: (code) => request(`/player/pair/poll/${code}`),
   heartbeat: (deviceToken, payload) => request('/player/heartbeat', { method: 'POST', body: payload, deviceToken }),
   config: (deviceToken) => request('/player/config', { deviceToken }),
-  mediaFileUrl: (mediaId) => `${API_BASE}/api/media/${mediaId}/file`,
 }
 
 export async function storageEstimateMb() {

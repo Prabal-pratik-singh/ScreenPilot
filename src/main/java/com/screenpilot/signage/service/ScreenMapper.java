@@ -31,12 +31,17 @@ public class ScreenMapper {
             } catch (Exception ignored) {
             }
         }
+        String currentItemThumbUrl = s.getCurrentItemMediaId() == null ? null
+                : "/api/media/" + s.getCurrentItemMediaId() + "/thumb?"
+                + com.screenpilot.signage.security.UrlSigner.instance()
+                .signQuery("media:" + s.getCurrentItemMediaId(), 3600);
         return new ScreenDtos.ScreenResponse(
                 s.getId(), s.getName(), s.getStoreName(), s.getCity(), s.getState(),
                 s.getGroup() == null ? null : new UserDtos.GroupRef(s.getGroup().getId(), s.getGroup().getName()),
                 s.getOrientation(), s.getResolution(), s.getLatitude(), s.getLongitude(),
                 s.getStatus(), s.getLastHeartbeatAt(), offlineSeconds,
-                s.getCurrentItemName(), s.getCurrentItemMediaId(), s.getAppVersion(), s.isPaired(),
+                s.getCurrentItemName(), s.getCurrentItemMediaId(), currentItemThumbUrl,
+                s.getAppVersion(), s.isPaired(),
                 s.getStorageUsedMb(), s.getStorageTotalMb(), mediaState, s.getCreatedAt());
     }
 }

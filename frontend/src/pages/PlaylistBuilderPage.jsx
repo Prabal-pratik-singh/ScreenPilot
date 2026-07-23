@@ -20,7 +20,7 @@ import clsx from 'clsx'
 import { api, errorMessage } from '../api/client'
 import { Card, Skeleton, EmptyState, Modal, Field, Spinner, Badge } from '../components/ui'
 import { fmtSeconds } from '../lib/format'
-import { mediaThumbUrl, TYPE_ICON, TYPE_LABEL, effectiveItemDuration } from '../lib/media'
+import { mediaThumbSrc, TYPE_ICON, TYPE_LABEL, effectiveItemDuration } from '../lib/media'
 
 function MiniThumb({ media, className }) {
   const [failed, setFailed] = useState(false)
@@ -32,7 +32,7 @@ function MiniThumb({ media, className }) {
       </div>
     )
   }
-  return <img src={mediaThumbUrl(media.id)} alt="" onError={() => setFailed(true)} className={clsx('object-cover rounded-lg bg-ink-800', className)} />
+  return <img src={mediaThumbSrc(media)} alt="" onError={() => setFailed(true)} className={clsx('object-cover rounded-lg bg-ink-800', className)} />
 }
 
 function LibraryCard({ media, onAdd }) {

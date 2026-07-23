@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_DB: signage
       POSTGRES_USER: signage
-      POSTGRES_PASSWORD: signage
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-signage}
     ports:
       - "5433:5432"
     volumes:
@@ -25,9 +25,10 @@ services:
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/signage
       SPRING_DATASOURCE_USERNAME: signage
-      SPRING_DATASOURCE_PASSWORD: signage
-      APP_CORS_ALLOWED_ORIGINS: http://localhost:8090,http://localhost:5174,http://localhost:4173
-      # APP_JWT_SECRET: override-me-in-production
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-signage}
+      APP_CORS_ALLOWED_ORIGINS: "*"
+      # Required: signs JWTs and media links. Set in .env (see .env.example).
+      APP_JWT_SECRET: ${APP_JWT_SECRET:?APP_JWT_SECRET missing - copy .env.example to .env and set it}
     ports:
       - "8081:8081"
     volumes:

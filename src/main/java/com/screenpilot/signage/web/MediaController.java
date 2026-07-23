@@ -2,7 +2,9 @@ package com.screenpilot.signage.web;
 
 import com.screenpilot.signage.domain.MediaAsset;
 import com.screenpilot.signage.dto.MediaDtos;
+import com.screenpilot.signage.error.ApiException;
 import com.screenpilot.signage.media.MediaService;
+import com.screenpilot.signage.security.UrlSigner;
 import jakarta.validation.Valid;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -85,7 +87,10 @@ public class MediaController {
      * Public: used by <img>/<video> tags and the player download manager.
      */
     @GetMapping("/{id}/file")
-    public ResponseEntity<Resource> file(@PathVariable UUID id) {
+    public ResponseEntity<Resource> file(@PathVariable UUID id,
+                                         @RequestParam(required = false) Long exp,
+                                         @RequestParam(required = false) String sig) {
+        requireValidSignature(id, exp, sig);
         MediaAsset asset = mediaService.getIncludingDeleted(id);
         Resource resource = mediaService.resourceFor(asset);
         MediaType mediaType = asset.getMimeType() != null
@@ -98,7 +103,10 @@ public class MediaController {
     }
 
     @GetMapping("/{id}/thumb")
-    public ResponseEntity<Resource> thumb(@PathVariable UUID id) {
+    public ResponseEntity<Resource> thumb(@PathVariable UUID id,
+                                          @RequestParam(required = false) Long exp,
+                                          @RequestParam(required = false) String sig) {
+        requireValidSignature(id, exp, sig);
         MediaAsset asset = mediaService.getIncludingDeleted(id);
         Resource resource = mediaService.thumbFor(asset);
         if (resource == null) {
@@ -113,5 +121,11 @@ public class MediaController {
 
     private String safeName(MediaAsset asset) {
         return asset.getName().replaceAll("[\\r\\n\"]", "_");
+    }
+
+    private void requireValidSignature(UUID mediaId, Long exp, String sig) {
+        if (!UrlSigner.instance().verify("media:" + mediaId, exp, sig)) {
+            throw ApiException.forbidden("This media link is invalid or has expired");
+        }
     }
 }

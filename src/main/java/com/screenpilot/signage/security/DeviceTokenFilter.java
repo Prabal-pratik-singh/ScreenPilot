@@ -34,7 +34,8 @@ public class DeviceTokenFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         String token = request.getHeader(HEADER);
         if (token != null && !token.isBlank() && SecurityContextHolder.getContext().getAuthentication() == null) {
-            Screen screen = screenRepository.findByDeviceToken(token).orElse(null);
+            // devices send the plaintext; the DB holds only its SHA-256 hash
+            Screen screen = screenRepository.findByDeviceToken(TokenHasher.sha256Hex(token)).orElse(null);
             if (screen != null && screen.isPaired()) {
                 DevicePrincipal principal = new DevicePrincipal(screen.getId(), screen.getName());
                 var auth = new UsernamePasswordAuthenticationToken(

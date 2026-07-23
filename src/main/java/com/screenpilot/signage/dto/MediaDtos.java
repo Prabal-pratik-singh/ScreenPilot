@@ -1,6 +1,7 @@
 package com.screenpilot.signage.dto;
 
 import com.screenpilot.signage.domain.MediaAsset;
+import com.screenpilot.signage.security.UrlSigner;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -17,6 +18,9 @@ public final class MediaDtos {
     public record UploaderRef(UUID id, String name) {
     }
 
+    /** Signed links stay valid this long; clients refetch listings well within it. */
+    public static final long MEDIA_URL_TTL_SECONDS = 12 * 3600;
+
     public record MediaResponse(
             UUID id,
             String name,
@@ -31,16 +35,24 @@ public final class MediaDtos {
             UploaderRef uploadedBy,
             Instant uploadedAt,
             boolean hasThumb,
-            boolean deleted) {
+            boolean deleted,
+            String fileUrl,
+            String thumbUrl) {
 
         public static MediaResponse from(MediaAsset m) {
+            UrlSigner signer = UrlSigner.instance();
+            String fileUrl = "/api/media/" + m.getId() + "/file?"
+                    + signer.signQuery("media:" + m.getId(), MEDIA_URL_TTL_SECONDS);
+            String thumbUrl = m.getThumbPath() == null ? null
+                    : "/api/media/" + m.getId() + "/thumb?"
+                    + signer.signQuery("media:" + m.getId(), MEDIA_URL_TTL_SECONDS);
             return new MediaResponse(
                     m.getId(), m.getName(), m.getType(), m.getMimeType(), m.getSizeBytes(),
                     m.getWidth(), m.getHeight(), m.getDurationSeconds(), m.getFolder(),
                     parseTags(m.getTags()),
                     m.getUploadedBy() == null ? null
                             : new UploaderRef(m.getUploadedBy().getId(), m.getUploadedBy().getFullName()),
-                    m.getUploadedAt(), m.getThumbPath() != null, m.isDeleted());
+                    m.getUploadedAt(), m.getThumbPath() != null, m.isDeleted(), fileUrl, thumbUrl);
         }
     }
 

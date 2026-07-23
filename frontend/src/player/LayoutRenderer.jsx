@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import PlaylistPlayer from './PlaylistPlayer'
-import { mediaFileUrl } from '../lib/media'
 import { Cloud } from 'lucide-react'
 
 /**
@@ -86,8 +85,10 @@ function LogoZone({ config, dm }) {
     let cancelled = false
     const resolve = async () => {
       if (config?.mediaId) {
+        // logo media is part of requiredMedia, so the download manager caches
+        // it; until then the wordmark fallback renders (no unsigned direct URL)
         const cached = await dm?.getUrl(String(config.mediaId))
-        if (!cancelled) setUrl(cached || mediaFileUrl(config.mediaId))
+        if (!cancelled && cached) setUrl(cached)
       }
     }
     resolve()

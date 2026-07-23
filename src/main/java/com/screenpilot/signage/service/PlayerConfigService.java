@@ -92,7 +92,10 @@ public class PlayerConfigService {
             md.put("mimeType", m.getMimeType());
             md.put("sizeBytes", m.getSizeBytes());
             md.put("durationSeconds", m.getDurationSeconds());
-            md.put("url", "/api/media/" + m.getId() + "/file");
+            // signed download link; players refresh config often, so 24h TTL is generous
+            md.put("url", "/api/media/" + m.getId() + "/file?"
+                    + com.screenpilot.signage.security.UrlSigner.instance()
+                    .signQuery("media:" + m.getId(), 24 * 3600));
             media.add(md);
         }
         config.put("requiredMedia", media);

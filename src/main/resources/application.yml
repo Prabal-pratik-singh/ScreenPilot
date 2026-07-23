@@ -28,12 +28,14 @@ spring:
 
 app:
   jwt:
-    # Dev-only secret. Override via APP_JWT_SECRET in production.
-    secret: screenpilot-signage-dev-secret-key-0123456789-abcdefghijklmnopqrstuvwxyz
+    # Signs JWTs and media URLs. Set APP_JWT_SECRET (>=32 chars) in the environment;
+    # when unset, a random ephemeral secret is generated at startup (dev only).
+    secret: ${APP_JWT_SECRET:}
     access-minutes: 30
     refresh-days: 14
   cors:
-    allowed-origins: http://localhost:5174,http://localhost:4173
+    # origin patterns; "*" is safe here — auth uses header tokens, not cookies
+    allowed-origins: "*"
   storage:
     dir: ./uploads
     max-file-mb: 500

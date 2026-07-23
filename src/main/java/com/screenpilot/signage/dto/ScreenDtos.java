@@ -32,6 +32,7 @@ public final class ScreenDtos {
             Long offlineSeconds,
             String currentItemName,
             UUID currentItemMediaId,
+            String currentItemThumbUrl,
             String appVersion,
             boolean paired,
             Double storageUsedMb,

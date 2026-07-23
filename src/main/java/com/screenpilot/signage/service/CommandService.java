@@ -98,9 +98,12 @@ public class CommandService {
         }
     }
 
+    /**
+     * Access control happens via the signed URL (HMAC), not the session —
+     * <img> tags cannot send Authorization headers.
+     */
     @Transactional(readOnly = true)
-    public Resource latestScreenshot(UUID screenId) {
-        screenService.getAccessible(screenId);
+    public Resource latestScreenshotUnchecked(UUID screenId) {
         Resource res = storage.loadAsResource("screenshots/" + screenId + ".jpg");
         if (!res.exists()) {
             throw ApiException.notFound("No screenshot has been captured for this screen yet");

@@ -127,7 +127,13 @@ function InfoRow({ label, children }) {
 function CommandsPanel({ screen, isAdmin }) {
   const queryClient = useQueryClient()
   const [feedback, setFeedback] = useState(null)
-  const [shotVersion, setShotVersion] = useState(() => Date.now())
+
+  // <img> tags can't send the Authorization header, so the API mints a
+  // short-lived HMAC-signed link for the screenshot instead
+  const shotLink = useQuery({
+    queryKey: ['screen', screen.id, 'screenshot-link'],
+    queryFn: () => api.get(`/screens/${screen.id}/screenshot-link`).then((r) => r.data.url),
+  })
   const [shotAvailable, setShotAvailable] = useState(true)
 
   const history = useQuery({
@@ -145,7 +151,7 @@ function CommandsPanel({ screen, isAdmin }) {
         // give the player a moment to capture & upload, then refresh the preview
         setTimeout(() => {
           setShotAvailable(true)
-          setShotVersion(Date.now())
+          queryClient.invalidateQueries({ queryKey: ['screen', screen.id, 'screenshot-link'] })
           queryClient.invalidateQueries({ queryKey: ['screen', screen.id, 'commands'] })
         }, 5000)
       }
@@ -186,9 +192,9 @@ function CommandsPanel({ screen, isAdmin }) {
 
       <div className="mt-4">
         <p className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">Last screenshot</p>
-        {shotAvailable ? (
+        {shotAvailable && shotLink.data ? (
           <img
-            src={`${API_BASE}/api/screens/${screen.id}/screenshot?v=${shotVersion}`}
+            src={`${API_BASE}${shotLink.data}`}
             alt="Player screenshot"
             className="rounded-lg border border-ink-100 w-full bg-ink-900"
             onError={() => setShotAvailable(false)}
@@ -386,9 +392,9 @@ export default function ScreenDetailPage() {
             {s.status === 'ONLINE' ? (
               <div className="flex items-center gap-4">
                 <div className="h-20 w-32 rounded-lg bg-ink-800 flex items-center justify-center text-ink-300 text-xs overflow-hidden">
-                  {s.currentItemMediaId ? (
+                  {s.currentItemThumbUrl ? (
                     <img
-                      src={`${API_BASE}/api/media/${s.currentItemMediaId}/thumb`}
+                      src={`${API_BASE}${s.currentItemThumbUrl}`}
                       alt=""
                       className="h-full w-full object-cover"
                       onError={(e) => { e.currentTarget.style.display = 'none' }}
