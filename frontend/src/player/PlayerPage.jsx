@@ -93,10 +93,32 @@ function PreparingScreen({ screenName, downloadState }) {
   )
 }
 
+/** Kiosk cursor: visible while the mouse moves, hidden after 3s of inactivity. */
+function useAutoHideCursor(timeoutMs = 3000) {
+  const [hidden, setHidden] = useState(true)
+  useEffect(() => {
+    let timer = null
+    const onMove = () => {
+      setHidden(false)
+      clearTimeout(timer)
+      timer = setTimeout(() => setHidden(true), timeoutMs)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('pointerdown', onMove)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('pointerdown', onMove)
+    }
+  }, [timeoutMs])
+  return hidden
+}
+
 export default function PlayerPage() {
   const [device, setDevice] = useState(loadDevice)
   const [pairCode, setPairCode] = useState(null)
   const [pairState, setPairState] = useState({ expired: false, error: null })
+  const cursorHidden = useAutoHideCursor()
   const [config, setConfig] = useState(null)
   const [downloadState, setDownloadState] = useState({})
   const [activeSchedule, setActiveSchedule] = useState(null)
@@ -150,9 +172,12 @@ export default function PlayerPage() {
           pollTimer = setTimeout(poll, res.pollIntervalMs || 3000)
         }
         pollTimer = setTimeout(poll, res.pollIntervalMs || 3000)
-      } catch {
+      } catch (err) {
         if (!cancelled) {
-          setPairState({ expired: false, error: 'Cannot reach the server. Retrying…' })
+          const detail = err.status
+            ? `server error HTTP ${err.status}` // reached nginx, backend answered badly
+            : 'network blocked or server offline' // request never arrived
+          setPairState({ expired: false, error: `Cannot reach the server (${detail}). Retrying…` })
           pollTimer = setTimeout(start, 5000)
         }
       }
@@ -379,7 +404,7 @@ export default function PlayerPage() {
     body = <IdleScreen screenName={device.screenName} />
   }
 
-  return <div className="player-root">{body}</div>
+  return <div className={`player-root${cursorHidden ? ' cursor-hidden' : ''}`}>{body}</div>
 }
 
 async function captureScreenshot(device, commandId = null) {

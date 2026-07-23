@@ -38,15 +38,18 @@
   }
 }
 
-/* Player: kiosk mode — no cursor, no scrollbars, pure black */
+/* Player: kiosk mode — no scrollbars, pure black; cursor hides after inactivity */
 .player-root {
-  cursor: none;
   overflow: hidden;
   background: #000;
   width: 100vw;
   height: 100vh;
   position: fixed;
   inset: 0;
+}
+.player-root.cursor-hidden,
+.player-root.cursor-hidden * {
+  cursor: none !important;
 }
 
 /* Smooth ticker animation (used by layout zones) */
