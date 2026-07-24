@@ -169,6 +169,16 @@ class SignageIntegrationTests {
     void conflictRulesTimedBeatsAllDayWithoutConflict() {
         String admin = login("admin@screenpilot.in", "ScreenPilot@123");
 
+        // stale runs may have left test schedules behind — start clean
+        List<Map<String, Object>> existing = rest.exchange("/api/schedules", HttpMethod.GET,
+                new HttpEntity<>(bearer(admin)), List.class).getBody();
+        for (Map<String, Object> s : existing) {
+            if ("IT all-day".equals(s.get("name"))) {
+                rest.exchange("/api/schedules/" + s.get("id"), HttpMethod.DELETE,
+                        new HttpEntity<>(bearer(admin)), Void.class);
+            }
+        }
+
         List<Map<String, Object>> screens = rest.exchange("/api/screens", HttpMethod.GET,
                 new HttpEntity<>(bearer(admin)), List.class).getBody();
         String screenId = (String) screens.get(0).get("id");
@@ -207,5 +217,9 @@ class SignageIntegrationTests {
         ResponseEntity<Map> layered = rest.exchange("/api/schedules/preview-conflicts", HttpMethod.POST,
                 new HttpEntity<>(timed, bearer(admin)), Map.class);
         assertThat((List) layered.getBody().get("conflicts")).isEmpty();
+
+        // leave the shared database the way we found it
+        rest.exchange("/api/schedules/" + created.getBody().get("id"), HttpMethod.DELETE,
+                new HttpEntity<>(bearer(admin)), Void.class);
     }
 }
