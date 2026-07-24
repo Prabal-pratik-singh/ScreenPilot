@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Signage servers often start as http://LAN-IP or http://VPS-IP before TLS
+     is set up; allow cleartext so those deployments work out of the box. -->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

@@ -128,6 +128,27 @@ Works the same in both modes — use **http://localhost:8090** (Docker) or
 > the kiosk feel. Pairing state lives in `localStorage`, cached media in IndexedDB — deleting the
 > screen in the portal un-pairs the device on its next heartbeat.
 
+## Android TV player app
+
+`android-tv/` contains a native kiosk app (Kotlin, zero external dependencies, ~1 MB APK) that
+wraps the web player for real TV fleets:
+
+- **Auto-start on boot** (`BOOT_COMPLETED` receiver) — plug the box in and signage plays
+- **Fullscreen kiosk WebView** — screen never sleeps, muted autoplay allowed, BACK disabled
+  (press BACK 5× to open the server-address setup screen)
+- **Self-healing** — recreates itself after WebView renderer crashes; auto-retries with backoff
+  when the network/server drops and reloads the moment connectivity returns
+- **Setup screen** — enter the portal address once (`Test connection` pings `/api/health`);
+  stored in SharedPreferences, pairing state lives in the WebView's localStorage/IndexedDB
+
+**Get the APK without installing anything:** every push builds it in CI — GitHub → Actions →
+latest run → artifact `screenpilot-player-apk`. Or build locally by opening `android-tv/` in
+Android Studio (`./gradlew assembleDebug`).
+
+**Install on a TV:** enable "install unknown apps", sideload `app-debug.apk` (USB drive or
+`adb install`), open it, enter your server address, then pair from the portal with the
+6-character code. Done — it survives reboots.
+
 ## Architecture notes
 
 - **RBAC + group scoping** — every screen/schedule/report query is filtered by the user's allowed
