@@ -18,6 +18,7 @@ services:
       interval: 5s
       timeout: 3s
       retries: 10
+    restart: unless-stopped
 
   backend:
     build: .
@@ -37,6 +38,13 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    healthcheck:
+      # app + database round-trip; Docker restarts the container when it hangs
+      test: ["CMD", "curl", "-sf", "http://localhost:8081/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 40s
     restart: unless-stopped
 
   frontend:
@@ -45,7 +53,23 @@ services:
     ports:
       - "8090:80"
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  # Nightly pg_dump snapshots into ./backups, keeping 14 days.
+  # One corrupted disk no longer means losing every schedule and report.
+  backup:
+    image: postgres:16-alpine
+    container_name: screenpilot-backup
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-signage}
+    volumes:
+      - ./backups:/backups
+    entrypoint: ["sh", "-c", "while true; do ts=$$(date +%Y-%m-%d_%H%M); if pg_dump -h postgres -U signage -d signage | gzip > /backups/signage-$$ts.sql.gz; then echo \"backup written: signage-$$ts.sql.gz\"; else echo 'backup FAILED'; fi; find /backups -name 'signage-*.sql.gz' -mtime +14 -delete; sleep 86400; done"]
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
 
 volumes:

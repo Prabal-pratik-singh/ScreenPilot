@@ -18,6 +18,9 @@
         <java.version>17</java.version>
         <maven.compiler.release>17</maven.compiler.release>
         <jjwt.version>0.12.6</jjwt.version>
+        <!-- Boot 3.3 pins 1.19.x, whose docker-java speaks an API version too old
+             for Docker Engine 25+; newer Testcontainers fixes daemon negotiation -->
+        <testcontainers.version>1.21.3</testcontainers.version>
     </properties>
 
     <dependencies>
@@ -107,6 +110,21 @@
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>
