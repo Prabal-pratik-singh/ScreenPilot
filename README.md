@@ -64,7 +64,7 @@ docker compose up -d postgres
 ```
 
 Starts `signage-postgres` on **localhost:5433** (db/user/password: `signage`). Flyway migrates the
-schema on backend startup (`V1`–`V6`).
+schema on backend startup (`V1`–`V7`).
 
 ## 2 — Run the backend
 
