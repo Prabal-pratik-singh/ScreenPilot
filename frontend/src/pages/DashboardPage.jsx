@@ -3,7 +3,7 @@
 // screen, and a gradient promo card. Live data comes from the existing
 // dashboard/screens/reports/schedules endpoints (missing metrics render as
 // zeros — see TODO-BACKEND.md); the portal WebSocket keeps counts fresh.
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
 import {
@@ -17,6 +17,31 @@ import { Card, SectionHeader, Skeleton, EmptyState, IconTile } from '../componen
 import ScreensMap from '../components/ScreensMap'
 
 // ---------- small pieces ----------
+
+// Animates a number from 0 to its target with an ease-out curve — makes the
+// KPI values "count up" when the dashboard loads. Skips animation entirely
+// for users with prefers-reduced-motion.
+function useCountUp(target, durationMs = 700) {
+  const [display, setDisplay] = useState(0)
+  useEffect(() => {
+    if (typeof target !== 'number' || Number.isNaN(target)) return undefined
+    if (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(target)
+      return undefined
+    }
+    let raf
+    const start = performance.now()
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / durationMs)
+      const eased = 1 - Math.pow(1 - t, 3) // ease-out cubic
+      setDisplay(Math.round(target * eased))
+      if (t < 1) raf = requestAnimationFrame(tick)
+    }
+    raf = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(raf)
+  }, [target, durationMs])
+  return typeof target === 'number' && !Number.isNaN(target) ? display : target
+}
 
 // Tinted "↑ x%" pill; deltas are placeholders until the API has historicals.
 function DeltaPill({ value = '0%', tone = 'success' }) {
@@ -35,8 +60,9 @@ function DeltaPill({ value = '0%', tone = 'success' }) {
 // KPI card: 44px tinted icon tile, 13px label, 28px value, caption + delta.
 // `highlight` (4th card) lightens the card and tints the border amber.
 function StatCard({ icon, tone, label, value, caption, loading, highlight = false }) {
+  const animated = useCountUp(typeof value === 'number' ? value : NaN)
   return (
-    <Card className={clsx('p-5', highlight && 'bg-[#14121C] border-warning/25')}>
+    <Card className={clsx('p-5 card-lift', highlight && 'bg-[#1C1830] border-warning/25')}>
       <div className="flex items-start gap-4">
         <IconTile icon={icon} tone={tone} />
         <div className="min-w-0 flex-1">
@@ -44,7 +70,9 @@ function StatCard({ icon, tone, label, value, caption, loading, highlight = fals
           {loading ? (
             <Skeleton className="mt-1 h-8 w-16" />
           ) : (
-            <p className="text-[28px] font-bold leading-tight text-txt-primary tabular-nums">{value}</p>
+            <p className="text-[28px] font-bold leading-tight text-txt-primary tabular-nums">
+              {typeof value === 'number' ? animated : value}
+            </p>
           )}
         </div>
       </div>

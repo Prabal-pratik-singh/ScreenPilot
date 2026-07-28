@@ -7,13 +7,13 @@ export default {
   theme: {
     extend: {
       colors: {
-        // surfaces
-        app: '#07070E',
-        sidebar: '#0A0A16',
-        card: '#10101E',
-        'card-inner': '#0C0C18',
-        hover: 'rgba(255,255,255,0.04)',
-        subtle: 'rgba(148,163,184,0.10)', // 1px borders
+        // surfaces — dark with a blue-violet cast, lifted for readability
+        app: '#0D0D17',
+        sidebar: '#111120',
+        card: '#171729',
+        'card-inner': '#121221',
+        hover: 'rgba(255,255,255,0.06)',
+        subtle: 'rgba(148,163,184,0.16)', // 1px borders
         // brand
         primary: {
           400: '#A78BFA',
@@ -26,11 +26,11 @@ export default {
         danger: { DEFAULT: '#F43F5E' },
         warning: { DEFAULT: '#F59E0B' },
         info: { DEFAULT: '#38BDF8' },
-        // text
+        // text — brighter secondary/muted tiers for small-size readability
         txt: {
-          primary: '#F1F5F9',
-          secondary: '#94A3B8',
-          muted: '#64748B',
+          primary: '#F4F7FB',
+          secondary: '#A9B7CC',
+          muted: '#8090A8',
         },
       },
       fontFamily: {

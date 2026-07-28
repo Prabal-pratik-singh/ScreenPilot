@@ -19,7 +19,6 @@ import {
   Settings,
   LogOut,
   ChevronDown,
-  Bell,
   Menu,
   X,
 } from 'lucide-react'
@@ -29,6 +28,7 @@ import { useAuth, hasRole } from '../auth/AuthContext'
 import { Logo } from './Logo'
 import { BRAND } from '../config/brand'
 import WeatherClockWidget from './WeatherClockWidget'
+import NotificationsMenu from './NotificationsMenu'
 import { usePortalSocket } from '../ws/usePortalSocket'
 
 // Nav order per the design spec; minRole hides items the user may not open.
@@ -182,14 +182,8 @@ export default function Layout() {
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
-              {/* notifications */}
-              <button
-                className="relative h-9 w-9 rounded-btn border border-subtle bg-hover flex items-center justify-center text-txt-secondary hover:text-txt-primary transition-colors"
-                aria-label="Notifications"
-              >
-                <Bell size={17} />
-                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#A855F7]" />
-              </button>
+              {/* notifications — live alerts derived from screens/schedules */}
+              <NotificationsMenu />
 
               {/* profile chip + menu */}
               <div className="relative">
