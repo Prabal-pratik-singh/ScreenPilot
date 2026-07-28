@@ -1,4 +1,4 @@
-package com.screenpilot.signage.web;
+package com.screenpilot.signage.controller;
 
 import com.screenpilot.signage.dto.UserDtos;
 import com.screenpilot.signage.service.UserService;

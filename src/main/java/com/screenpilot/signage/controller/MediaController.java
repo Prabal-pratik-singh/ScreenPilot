@@ -1,4 +1,4 @@
-package com.screenpilot.signage.web;
+package com.screenpilot.signage.controller;
 
 import com.screenpilot.signage.domain.MediaAsset;
 import com.screenpilot.signage.dto.MediaDtos;

@@ -1,4 +1,4 @@
-package com.screenpilot.signage.web;
+package com.screenpilot.signage.controller;
 
 import com.screenpilot.signage.domain.ScreenCommand;
 import com.screenpilot.signage.dto.ScreenDtos;

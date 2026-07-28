@@ -1,4 +1,4 @@
-package com.screenpilot.signage.web;
+package com.screenpilot.signage.controller;
 
 import com.screenpilot.signage.integrations.ContentSourceProvider;
 import org.springframework.security.access.prepost.PreAuthorize;

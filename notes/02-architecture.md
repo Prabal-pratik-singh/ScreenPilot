@@ -85,7 +85,7 @@ Every folder under `src/main/java/com/screenpilot/signage/` is one layer or one 
    │             (who are you? allowed?)      │  RateLimitFilter, UrlSigner, TokenHasher
    └────────────────────┬─────────────────────┘
    ┌────────────────────▼─────────────────────┐
-   │ web/        CONTROLLERS — receive HTTP,  │  ScreenController, MediaController,
+   │ controller/ CONTROLLERS — receive HTTP,  │  ScreenController, MediaController,
    │             check @PreAuthorize, call    │  ScheduleController, PlayerController,
    │             one service, return DTOs.    │  ReportController, AuthController ...
    │             NO business logic here.      │
