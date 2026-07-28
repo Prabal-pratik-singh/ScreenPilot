@@ -2,23 +2,51 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ScreenPilot dark theme — design-token CSS variables (mirrored in
+   tailwind.config.js so both utility classes and raw CSS can use them). */
+:root {
+  --bg-app: #07070e;
+  --bg-sidebar: #0a0a16;
+  --bg-card: #10101e;
+  --bg-card-inner: #0c0c18;
+  --bg-hover: rgba(255, 255, 255, 0.04);
+  --border-subtle: rgba(148, 163, 184, 0.1);
+
+  --primary-400: #a78bfa;
+  --primary-500: #8b5cf6;
+  --primary-600: #7c3aed;
+  --accent-fuchsia: #c026d3;
+  --grad-primary: linear-gradient(90deg, #7c3aed, #c026d3);
+  --grad-logo: linear-gradient(90deg, #a78bfa, #e879f9);
+
+  --success: #22c55e;
+  --danger: #f43f5e;
+  --warning: #f59e0b;
+  --info: #38bdf8;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+
+  --glow-primary: 0 0 24px rgba(139, 92, 246, 0.35);
+}
+
 @layer base {
   html {
     @apply antialiased scroll-smooth;
   }
   body {
-    @apply bg-cream text-ink-800 font-sans;
-    /* faint warm radial washes so the background isn't a flat color */
+    @apply bg-app text-txt-primary font-sans text-sm;
+    /* faint violet radial washes so the near-black canvas has depth */
     background-image:
-      radial-gradient(1100px 500px at 85% -10%, rgba(246, 168, 33, 0.06), transparent 60%),
-      radial-gradient(900px 480px at -10% 100%, rgba(22, 35, 63, 0.05), transparent 55%);
+      radial-gradient(1100px 520px at 85% -10%, rgba(124, 58, 237, 0.08), transparent 60%),
+      radial-gradient(900px 480px at -10% 110%, rgba(192, 38, 211, 0.05), transparent 55%);
     background-attachment: fixed;
   }
-  /* brand-colored text selection */
   ::selection {
-    @apply bg-marigold/30 text-ink-900;
+    @apply bg-primary-500/40 text-txt-primary;
   }
-  /* slim, subtle scrollbars (WebKit browsers incl. Android TV WebView) */
+  /* thin dark scrollbars */
   ::-webkit-scrollbar {
     width: 9px;
     height: 9px;
@@ -27,46 +55,76 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-ink-200 rounded-full;
+    background: rgba(148, 163, 184, 0.22);
+    border-radius: 9999px;
     border: 2px solid transparent;
     background-clip: content-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-ink-300;
+    background: rgba(148, 163, 184, 0.38);
+    background-clip: content-box;
+  }
+  /* keyboard-visible focus ring on every interactive element */
+  :focus-visible {
+    outline: 2px solid rgba(139, 92, 246, 0.7);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* accessibility: kill decorative motion for users who ask for it */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-ink-100/60 transition-shadow duration-300;
+    @apply bg-card rounded-card border border-subtle;
   }
-  /* opt-in hover treatment for clickable cards: lift + deeper shadow */
+  /* nested container inside a card */
+  .card-inner {
+    @apply bg-card-inner rounded-tile border border-subtle;
+  }
+  /* opt-in hover treatment for clickable cards */
   .card-lift {
-    @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5;
+    @apply transition-all duration-200 hover:border-primary-500/30 hover:shadow-glow-primary;
   }
   .input {
-    @apply w-full rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder-ink-300 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-marigold/60 focus:border-marigold focus:shadow-[0_0_0_4px_rgba(246,168,33,0.12)];
+    @apply w-full rounded-btn border border-subtle bg-card-inner px-3 py-2 text-sm text-txt-primary placeholder-txt-muted transition-shadow duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500/40 focus:border-primary-500/50;
   }
   .label {
-    @apply block text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1;
+    @apply block text-xs font-semibold uppercase tracking-wide text-txt-muted mb-1;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97];
+    @apply inline-flex items-center justify-center gap-2 rounded-btn px-4 h-9 text-sm font-medium transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-primary-500/40 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98];
   }
   .btn-primary {
-    @apply btn text-ink-900 focus:ring-marigold shadow-md shadow-marigold/25 hover:shadow-lg hover:shadow-marigold/35 hover:brightness-105;
-    background-image: linear-gradient(to bottom, #f9c456, #f6a821);
+    @apply btn text-white hover:shadow-glow-primary hover:brightness-110;
+    background-image: var(--grad-primary);
   }
   .btn-secondary {
-    @apply btn text-white focus:ring-ink-400 shadow-md shadow-ink-900/20 hover:shadow-lg;
-    background-image: linear-gradient(to bottom, #212f48, #16233f);
+    @apply btn bg-hover text-txt-primary border border-subtle hover:bg-white/[0.07] hover:border-primary-500/30;
   }
   .btn-ghost {
-    @apply btn bg-white/60 text-ink-600 hover:bg-white hover:border-ink-300 hover:shadow-sm border border-ink-200 focus:ring-ink-200;
+    @apply btn bg-hover text-txt-secondary border border-subtle hover:bg-white/[0.07] hover:text-txt-primary;
   }
   .btn-danger {
-    @apply btn text-white focus:ring-danger shadow-md shadow-danger/25 hover:shadow-lg hover:brightness-105;
-    background-image: linear-gradient(to bottom, #f87171, #ef4444);
+    @apply btn bg-danger/15 text-danger border border-danger/30 hover:bg-danger/25;
+  }
+  /* brand gradient helpers */
+  .bg-grad-primary {
+    background-image: var(--grad-primary);
+  }
+  .text-grad-logo {
+    background-image: var(--grad-logo);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 }
 
