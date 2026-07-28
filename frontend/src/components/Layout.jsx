@@ -1,7 +1,9 @@
-// App shell for every logged-in portal page: fixed sidebar navigation on the
-// left, sticky header with the user menu on top, and the current page rendered
-// into React Router's <Outlet />. Nav items hide themselves when the user's
-// role is below the item's minRole. Also mounts usePortalSocket so live screen
+// App shell for every logged-in portal page: fixed 256px dark sidebar with
+// the brand lockup, gradient active nav pills, a weather + live IST clock
+// widget and decorative glow; the content area carries an in-content topbar
+// (welcome line on the dashboard, bell + profile chip everywhere) above the
+// active route's <Outlet />. Below 768px the sidebar becomes an off-canvas
+// drawer toggled by a hamburger. Also mounts usePortalSocket so live screen
 // status updates flow while any portal page is open.
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
@@ -17,14 +19,19 @@ import {
   Settings,
   LogOut,
   ChevronDown,
+  Bell,
+  Menu,
+  X,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { useAuth, hasRole } from '../auth/AuthContext'
 import { Logo } from './Logo'
+import { BRAND } from '../config/brand'
+import WeatherClockWidget from './WeatherClockWidget'
 import { usePortalSocket } from '../ws/usePortalSocket'
 
-// Items are appended as build phases land; keep in sync with routes in App.jsx
+// Nav order per the design spec; minRole hides items the user may not open.
 const NAV = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
   { to: '/screens', label: 'Screens', icon: MonitorPlay },
@@ -45,90 +52,184 @@ const ROLE_LABEL = {
   VIEWER: 'Viewer',
 }
 
-// Renders the sidebar + header chrome around the active route's page.
+// The sidebar body — reused by the fixed rail (desktop) and the drawer (mobile).
+function SidebarContent({ user, onNavigate }) {
+  return (
+    <div className="relative flex h-full flex-col overflow-hidden">
+      {/* brand lockup */}
+      <div className="px-5 pt-5 pb-4">
+        <Logo withTagline />
+      </div>
+
+      {/* navigation */}
+      <nav className="flex-1 overflow-y-auto px-3 py-2 space-y-1 relative z-10">
+        {NAV.filter((item) => !item.minRole || hasRole(user, item.minRole)).map((item) => (
+          <NavLink
+            key={item.to}
+            to={item.to}
+            end={item.end}
+            onClick={onNavigate}
+            className={({ isActive }) =>
+              clsx(
+                'flex h-10 items-center gap-3 rounded-btn px-3 text-sm font-medium transition-all duration-150',
+                isActive
+                  ? 'bg-grad-primary text-white shadow-glow-primary'
+                  : 'text-txt-secondary hover:bg-hover hover:text-txt-primary',
+              )
+            }
+          >
+            <item.icon size={18} />
+            {item.label}
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* weather + clock widget */}
+      <div className="relative z-10 px-3 pb-4">
+        <WeatherClockWidget />
+      </div>
+
+      {/* decorative: radial glow blob + faint dotted grid, non-interactive */}
+      <div className="pointer-events-none absolute bottom-0 inset-x-0 h-72">
+        <div className="absolute -bottom-24 -left-16 h-64 w-64 rounded-full bg-primary-600/25 blur-3xl" />
+        <div className="absolute -bottom-16 -right-8 h-48 w-48 rounded-full bg-accent/20 blur-3xl" />
+        <div
+          className="absolute inset-0 opacity-[0.14]"
+          style={{
+            backgroundImage: 'radial-gradient(rgba(148,163,184,0.5) 1px, transparent 1px)',
+            backgroundSize: '14px 14px',
+          }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// Renders the sidebar + topbar chrome around the active route's page.
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [drawerOpen, setDrawerOpen] = useState(false)
   usePortalSocket(true)
 
+  // keep the browser tab title on brand
+  useEffect(() => {
+    document.title = BRAND.name
+  }, [])
+
+  const isDashboard = location.pathname === '/'
+  const initials = (user?.fullName || '?')
+    .split(' ')
+    .map((w) => w[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase()
+
   return (
-    <div className="flex min-h-screen">
-      {/* navy gradient rail with a faint marigold glow at the top */}
-      <aside className="fixed inset-y-0 left-0 w-60 bg-gradient-to-b from-ink-800 via-ink-800 to-ink-900 text-white flex flex-col z-40 shadow-[4px_0_24px_rgba(13,21,38,0.25)]">
-        <div className="relative px-5 py-5 border-b border-white/10 overflow-hidden">
-          <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-marigold/20 blur-2xl" />
-          <Logo dark />
-          <p className="text-[11px] uppercase tracking-widest text-ink-300 mt-1">Digital Signage</p>
-        </div>
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
-          {NAV.filter((item) => !item.minRole || hasRole(user, item.minRole)).map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              className={({ isActive }) =>
-                clsx(
-                  'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
-                  isActive
-                    ? 'bg-gradient-to-r from-marigold-400 to-marigold text-ink-900 shadow-glow-marigold font-semibold'
-                    : 'text-ink-100 hover:bg-white/10 hover:text-white hover:translate-x-0.5',
-                )
-              }
-            >
-              <item.icon size={18} className="transition-transform duration-200 group-hover:scale-110" />
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-        <div className="px-5 py-4 text-[11px] text-ink-300 border-t border-white/10">
-          ScreenPilot · Digital Signage
-        </div>
+    <div className="flex min-h-screen bg-app">
+      {/* fixed sidebar (desktop) */}
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r border-subtle bg-sidebar md:block">
+        <SidebarContent user={user} />
       </aside>
 
-      <div className="flex-1 ml-60 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-md border-b border-ink-100/70">
-          <div className="flex items-center justify-end px-6 h-14 gap-4">
-            <div className="relative">
+      {/* off-canvas drawer (mobile) */}
+      {drawerOpen && (
+        <div className="fixed inset-0 z-50 md:hidden">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setDrawerOpen(false)} />
+          <aside className="absolute inset-y-0 left-0 w-64 border-r border-subtle bg-sidebar animate-fade-up">
+            <button
+              onClick={() => setDrawerOpen(false)}
+              className="absolute right-3 top-3 z-20 rounded-lg p-1.5 text-txt-muted hover:text-txt-primary hover:bg-hover"
+              aria-label="Close menu"
+            >
+              <X size={18} />
+            </button>
+            <SidebarContent user={user} onNavigate={() => setDrawerOpen(false)} />
+          </aside>
+        </div>
+      )}
+
+      {/* main column */}
+      <div className="flex-1 md:ml-64 flex flex-col min-w-0">
+        <main key={location.pathname} className="flex-1 p-7 animate-fade-up">
+          {/* in-content topbar */}
+          <div className="mb-7 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              {/* hamburger, mobile only */}
               <button
-                onClick={() => setMenuOpen((v) => !v)}
-                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-white hover:shadow-sm"
+                onClick={() => setDrawerOpen(true)}
+                className="md:hidden mt-1 rounded-btn border border-subtle bg-hover p-2 text-txt-secondary hover:text-txt-primary"
+                aria-label="Open menu"
               >
-                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-ink-700 to-ink-900 text-marigold flex items-center justify-center text-sm font-bold ring-2 ring-marigold/40">
-                  {user?.fullName?.[0]?.toUpperCase() || '?'}
-                </div>
-                <div className="text-left hidden sm:block">
-                  <p className="text-sm font-semibold text-ink-800 leading-tight">{user?.fullName}</p>
-                  <p className="text-[11px] text-ink-400 leading-tight">{ROLE_LABEL[user?.role] || user?.role}</p>
-                </div>
-                <ChevronDown size={15} className="text-ink-300" />
+                <Menu size={18} />
               </button>
-              {menuOpen && (
-                <>
-                  {/* Invisible full-screen backdrop: clicking anywhere outside closes the menu */}
-                  <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                  <div className="absolute right-0 mt-1 w-48 card p-1.5 z-20">
-                    <div className="px-3 py-2 border-b border-ink-100 mb-1">
-                      <p className="text-xs text-ink-400 truncate">{user?.email}</p>
-                    </div>
-                    <button
-                      onClick={() => {
-                        logout()
-                        navigate('/login')
-                      }}
-                      className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-danger hover:bg-danger-100"
-                    >
-                      <LogOut size={15} /> Sign out
-                    </button>
-                  </div>
-                </>
+              {isDashboard ? (
+                <div className="min-w-0">
+                  <h1 className="text-[22px] font-semibold text-txt-primary tracking-tight truncate">
+                    Welcome back, {user?.fullName?.split(' ')[0] || 'Admin'} 👋
+                  </h1>
+                  <p className="text-sm text-txt-secondary mt-0.5">
+                    Here's what's happening with your digital signage network.
+                  </p>
+                </div>
+              ) : (
+                <div className="md:hidden">
+                  <Logo size="sm" />
+                </div>
               )}
             </div>
+
+            <div className="flex items-center gap-3 shrink-0">
+              {/* notifications */}
+              <button
+                className="relative h-9 w-9 rounded-btn border border-subtle bg-hover flex items-center justify-center text-txt-secondary hover:text-txt-primary transition-colors"
+                aria-label="Notifications"
+              >
+                <Bell size={17} />
+                <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-[#A855F7]" />
+              </button>
+
+              {/* profile chip + menu */}
+              <div className="relative">
+                <button
+                  onClick={() => setMenuOpen((v) => !v)}
+                  className="flex items-center gap-2.5 rounded-btn px-1.5 py-1 transition-colors hover:bg-hover"
+                >
+                  <div className="h-9 w-9 rounded-full bg-grad-primary flex items-center justify-center text-[13px] font-semibold text-white">
+                    {initials}
+                  </div>
+                  <div className="text-left hidden sm:block">
+                    <p className="text-[13px] font-medium text-txt-primary leading-tight">{user?.fullName}</p>
+                    <p className="text-xs text-txt-secondary leading-tight">{ROLE_LABEL[user?.role] || user?.role}</p>
+                  </div>
+                  <ChevronDown size={15} className="text-txt-muted" />
+                </button>
+                {menuOpen && (
+                  <>
+                    {/* invisible backdrop: clicking anywhere outside closes the menu */}
+                    <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute right-0 mt-1 w-48 card p-1.5 z-20 animate-pop-in">
+                      <div className="px-3 py-2 border-b border-subtle mb-1">
+                        <p className="text-xs text-txt-muted truncate">{user?.email}</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          logout()
+                          navigate('/login')
+                        }}
+                        className="flex w-full items-center gap-2 rounded-btn px-3 py-2 text-sm text-danger hover:bg-danger/10 transition-colors"
+                      >
+                        <LogOut size={15} /> Sign out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
           </div>
-        </header>
-        {/* key on the path re-triggers the fade-up entrance on every page change */}
-        <main key={location.pathname} className="flex-1 px-6 py-6 max-w-[1500px] w-full mx-auto animate-fade-up">
+
           <Outlet />
         </main>
       </div>
