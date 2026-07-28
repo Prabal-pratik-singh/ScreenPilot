@@ -6,12 +6,18 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "screen_commands" table. A row is one remote instruction sent
+ * from the portal to a player device (reload content, clear its cache, take a screenshot),
+ * tracked through its lifecycle so admins can see whether the device acted on it.
+ */
 @Entity
 @Table(name = "screen_commands")
 public class ScreenCommand {
 
     public enum Command { RELOAD, CLEAR_CACHE, SCREENSHOT }
 
+    /** Lifecycle: SENT (created) -> ACKED (device received it) -> COMPLETED (device finished it). */
     public enum Status { SENT, ACKED, COMPLETED }
 
     @Id
@@ -38,6 +44,7 @@ public class ScreenCommand {
     @Column(name = "completed_at")
     private Instant completedAt;
 
+    /** Storage key of the command's output, e.g. the uploaded screenshot image. */
     @Column(name = "result_path")
     private String resultPath;
 

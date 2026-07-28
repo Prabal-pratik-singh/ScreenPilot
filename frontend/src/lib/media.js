@@ -1,3 +1,6 @@
+// Media helpers shared by the portal and the player: building signed URLs for
+// media files/thumbnails, icon + label lookups per media type, working out how
+// long a playlist item should stay on screen, and extracting YouTube video ids.
 import { API_BASE } from '../api/client'
 import { Film, Image as ImageIcon, FileText } from 'lucide-react'
 
@@ -18,6 +21,7 @@ export function effectiveItemDuration(item) {
   return item.durationSeconds ?? 20
 }
 
+/** Pulls the 11-char video id out of any common YouTube URL shape, else null. */
 export function youTubeId(url) {
   const m = String(url || '').match(
     /(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{6,})/,

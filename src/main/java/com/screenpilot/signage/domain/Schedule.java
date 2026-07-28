@@ -11,10 +11,17 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "schedules" table. A row answers "what plays where, and when":
+ * it points to a playlist or layout, targets a set of screens (via the "schedule_targets"
+ * join table), and limits playback by time window, weekdays and date range. When several
+ * schedules match a screen at the same moment, the highest priority wins.
+ */
 @Entity
 @Table(name = "schedules")
 public class Schedule {
 
+    /** What this schedule plays: a single playlist, or a multi-zone layout. */
     public enum ContentType { PLAYLIST, LAYOUT }
 
     @Id
@@ -54,12 +61,14 @@ public class Schedule {
     @Column(name = "date_to")
     private LocalDate dateTo;
 
+    /** Tie-breaker when schedules overlap on a screen: higher number beats lower. */
     @Column(nullable = false)
     private int priority = 0;
 
     @Column(nullable = false)
     private boolean active = true;
 
+    // Target screens, stored in the "schedule_targets" many-to-many join table.
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(name = "schedule_targets",
             joinColumns = @JoinColumn(name = "schedule_id"),

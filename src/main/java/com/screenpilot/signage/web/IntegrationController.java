@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Lists the pluggable content-source integrations (ContentSourceProvider
+ * beans) and whether each one is enabled/configured on this deployment.
+ */
 @RestController
 @RequestMapping("/api/integrations")
 public class IntegrationController {
@@ -19,6 +23,7 @@ public class IntegrationController {
         this.providers = providers;
     }
 
+    // GET /api/integrations — describe each provider and its enabled state; ADMIN only
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
     public List<Map<String, Object>> list() {

@@ -1,3 +1,8 @@
+// Layouts list page: card grid of multi-zone screen designs with a miniature
+// zone preview per card. "New layout" opens a modal where you pick a name,
+// orientation (16:9 / 9:16) and a starting preset, then jumps into the
+// LayoutDesigner. Deleting is confirmed and surfaces server-side errors
+// (e.g. layout still referenced by a schedule).
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router-dom'
@@ -8,6 +13,7 @@ import { Card, PageHeader, Skeleton, EmptyState, Modal, Field, Spinner, ConfirmD
 import { timeAgo } from '../lib/format'
 import { useAuth, hasRole } from '../auth/AuthContext'
 
+// Starter templates; rects are [x, y, w, h, zoneTypeInitial] in percent.
 const PRESETS = [
   { key: 'FULLSCREEN', label: 'Fullscreen', desc: 'One media zone', rects: [[0, 0, 100, 100, 'M']] },
   { key: 'SPLIT_70_30', label: '70 / 30 split', desc: 'Main + side zone', rects: [[0, 0, 70, 100, 'M'], [70, 0, 30, 100, 'M']] },
@@ -15,6 +21,7 @@ const PRESETS = [
   { key: 'L_SHAPE', label: 'L-shape', desc: 'Main + sidebar + ticker', rects: [[0, 0, 75, 87.5, 'M'], [75, 0, 25, 87.5, 'W'], [0, 87.5, 100, 12.5, 'T']] },
 ]
 
+// Tiny 16:9 thumbnail drawing a preset's zones inside the create modal.
 function PresetThumb({ rects, className }) {
   return (
     <div className={clsx('relative bg-ink-900 rounded-md overflow-hidden', className)} style={{ aspectRatio: '16/9' }}>
@@ -34,6 +41,7 @@ function PresetThumb({ rects, className }) {
   )
 }
 
+// Read-only miniature of a saved layout's zones, shown on each list card.
 function ZonePreview({ layout }) {
   const colors = { MEDIA: 'bg-ink-600', TICKER: 'bg-marigold', WIDGET: 'bg-ink-700', LOGO: 'bg-ink-500', WEB: 'bg-ink-400' }
   return (

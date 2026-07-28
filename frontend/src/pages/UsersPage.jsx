@@ -1,3 +1,7 @@
+// User management page (SUPER_ADMIN only): table of portal accounts with
+// role badge, screen-group access and active status. Invite/edit share one
+// modal; deactivate/activate flips accounts without deleting them, and you
+// cannot deactivate yourself.
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, Users as UsersIcon, Pencil } from 'lucide-react'
@@ -14,6 +18,9 @@ const ROLES = [
 ]
 const ROLE_TONE = { SUPER_ADMIN: 'marigold', ADMIN: 'ink', CONTENT_MANAGER: 'success', VIEWER: 'warning' }
 
+// Invite/edit form. `existing` = edit mode: email is locked, password only
+// sent when filled in. Group chips toggle which screen groups the user sees
+// (none selected = access to every group).
 function UserModal({ open, onClose, existing, groups }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({

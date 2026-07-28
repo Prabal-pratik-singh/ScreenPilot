@@ -21,6 +21,7 @@ public class HealthController {
         this.groupRepository = groupRepository;
     }
 
+    // GET /api/health — public, no auth: 200 {"status":"UP"} or 503 when the DB is unreachable
     @GetMapping("/api/health")
     public ResponseEntity<Map<String, String>> health() {
         try {

@@ -5,6 +5,11 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "screen_status_events" table. A row records the moment a
+ * screen flipped ONLINE or OFFLINE. The Screen row only holds the current status, so
+ * this append-only history is what uptime reports are computed from.
+ */
 @Entity
 @Table(name = "screen_status_events")
 public class ScreenStatusEvent {

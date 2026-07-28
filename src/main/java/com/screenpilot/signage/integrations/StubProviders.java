@@ -5,6 +5,10 @@ import org.springframework.stereotype.Component;
 /**
  * Registered-but-disabled providers. Each needs real OAuth/API credentials
  * before it can be enabled — intentionally not faked.
+ * Each nested class is a Spring {@code @Component}, so component scanning picks them up
+ * and they appear automatically wherever a List of ContentSourceProvider is injected
+ * (the Settings page renders one "Connect" card per bean). The outer class is only a
+ * namespace grouping them.
  */
 public final class StubProviders {
 

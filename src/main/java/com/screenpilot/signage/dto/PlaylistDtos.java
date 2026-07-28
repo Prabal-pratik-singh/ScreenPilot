@@ -10,14 +10,21 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DTOs (Data Transfer Objects) for the playlist endpoints, plus the shared logic that
+ * decides how long each item plays. Each DTO is a Java record; this outer class is only
+ * a namespace.
+ */
 public final class PlaylistDtos {
 
     private PlaylistDtos() {
     }
 
+    // Fallback durations when an item has none set: images/PDFs 10s, URL/YouTube items 20s.
     public static final int DEFAULT_STATIC_SECONDS = 10;
     public static final int DEFAULT_EXTERNAL_SECONDS = 20;
 
+    /** Sent inside PlaylistResponse: one item with its resolved (effective) play duration. */
     public record ItemResponse(
             UUID id,
             int position,
@@ -48,6 +55,7 @@ public final class PlaylistDtos {
         return item.getDurationSeconds() != null ? item.getDurationSeconds() : DEFAULT_EXTERNAL_SECONDS;
     }
 
+    /** Sent when listing/opening playlists; items are included only on detail requests. */
     public record PlaylistResponse(
             UUID id,
             String name,
@@ -73,11 +81,13 @@ public final class PlaylistDtos {
         }
     }
 
+    /** Received on create/rename of a playlist (name and description only). */
     public record SavePlaylistRequest(
             @NotBlank @Size(max = 200) String name,
             @Size(max = 500) String description) {
     }
 
+    /** Received inside SaveItemsRequest: one item definition (media reference or external URL). */
     public record SaveItemRequest(
             @NotNull PlaylistItem.ItemType itemType,
             UUID mediaId,
@@ -86,6 +96,7 @@ public final class PlaylistDtos {
             Integer durationSeconds) {
     }
 
+    /** Received when saving the editor: replaces the playlist's entire item list in the given order. */
     public record SaveItemsRequest(@NotNull List<SaveItemRequest> items) {
     }
 }

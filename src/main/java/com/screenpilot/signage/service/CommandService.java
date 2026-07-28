@@ -19,6 +19,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Remote control for screens: portal users send commands (RESTART, SCREENSHOT,
+ * ...) which are stored for audit and pushed to the device over the WebSocket
+ * channel; the player acknowledges back over REST.
+ */
 @Service
 public class CommandService {
 
@@ -35,8 +40,10 @@ public class CommandService {
         this.storage = storage;
     }
 
+    /** Records a command (who sent what) and pushes it to the screen's WebSocket queue. */
     @Transactional
     public ScreenCommand send(UUID screenId, ScreenCommand.Command command) {
+        // access check: throws if the current user cannot manage this screen
         Screen screen = screenService.getAccessible(screenId);
         ScreenCommand cmd = new ScreenCommand(screen.getId(), command, CurrentUser.get().id());
         commandRepository.save(cmd);
@@ -47,15 +54,18 @@ public class CommandService {
         return cmd;
     }
 
+    /** Last 10 commands sent to a screen, newest first. */
     @Transactional(readOnly = true)
     public List<ScreenCommand> history(UUID screenId) {
         screenService.getAccessible(screenId);
         return commandRepository.findTop10ByScreenIdOrderByCreatedAtDesc(screenId);
     }
 
+    /** Player acknowledgement: SCREENSHOT stays ACKED until the image arrives; others complete now. */
     @Transactional
     public void ack(UUID screenId, UUID commandId) {
         commandRepository.findById(commandId).ifPresent(cmd -> {
+            // the ack must come from the screen the command was addressed to
             if (cmd.getScreenId().equals(screenId) && cmd.getStatus() == ScreenCommand.Status.SENT) {
                 cmd.setStatus(cmd.getCommand() == ScreenCommand.Command.SCREENSHOT
                         ? ScreenCommand.Status.ACKED : ScreenCommand.Status.COMPLETED);
@@ -71,6 +81,7 @@ public class CommandService {
         if (imageBase64 == null || imageBase64.isBlank()) {
             throw ApiException.badRequest("No image received");
         }
+        // 1. strip an optional data-URI prefix ("data:image/jpeg;base64,...") and decode
         String base64 = imageBase64.contains(",") ? imageBase64.substring(imageBase64.indexOf(',') + 1) : imageBase64;
         byte[] bytes;
         try {
@@ -78,11 +89,14 @@ public class CommandService {
         } catch (IllegalArgumentException e) {
             throw ApiException.badRequest("Invalid image data");
         }
+        // 2. cap the payload at 5 MB
         if (bytes.length > 5 * 1024 * 1024) {
             throw ApiException.badRequest("Screenshot too large");
         }
         try {
+            // 3. overwrite the screen's single "latest screenshot" file
             String key = storage.store(new ByteArrayInputStream(bytes), "screenshots", screenId + ".jpg");
+            // 4. mark the originating SCREENSHOT command as completed
             if (commandId != null) {
                 commandRepository.findById(commandId).ifPresent(cmd -> {
                     if (cmd.getScreenId().equals(screenId)) {

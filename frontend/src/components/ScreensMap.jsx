@@ -1,3 +1,7 @@
+// Interactive map of all screens, built on Leaflet (via react-leaflet) with
+// OpenStreetMap tiles. Each screen with lat/long becomes a colored dot
+// (green online, red offline); nearby dots merge into cluster bubbles whose
+// color reflects how many members are offline. Used on Dashboard and Screens.
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
@@ -6,6 +10,7 @@ import { Link } from 'react-router-dom'
 import { StatusDot } from './ui'
 import { offlineFor, timeAgo } from '../lib/format'
 
+// Builds the small circular marker for one screen; color comes from status.
 function statusIcon(status) {
   const color = status === 'ONLINE' ? '#22C55E' : '#EF4444'
   return L.divIcon({
@@ -16,6 +21,8 @@ function statusIcon(status) {
   })
 }
 
+// Builds the numbered bubble shown when several markers cluster together:
+// all online = green, all offline = red, mixed = amber.
 function clusterIcon(cluster) {
   const children = cluster.getAllChildMarkers()
   const offline = children.filter((m) => m.options.status === 'OFFLINE').length
@@ -28,6 +35,7 @@ function clusterIcon(cluster) {
   })
 }
 
+// Renders the map itself; screens without coordinates are simply skipped.
 export default function ScreensMap({ screens, height = 420 }) {
   const withCoords = (screens || []).filter((s) => s.latitude != null && s.longitude != null)
   return (

@@ -20,6 +20,13 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Set;
 
+/**
+ * Fills an empty database with starter data on first boot: the admin account, two demo
+ * users, three screen groups and a dozen demo screens. Implements {@code CommandLineRunner},
+ * which Spring Boot invokes once after the application context is ready; {@code @Order(1)}
+ * runs it before the media seeder. If users already exist it does nothing, so restarting
+ * the app never duplicates data.
+ */
 @Component
 @Order(1)
 public class DataSeeder implements CommandLineRunner {

@@ -14,6 +14,10 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Reporting endpoints: JSON data for the two dashboards plus a combined file
+ * export. Class-level @PreAuthorize: everything needs at least VIEWER.
+ */
 @RestController
 @RequestMapping("/api/reports")
 @PreAuthorize("hasRole('VIEWER')")
@@ -27,6 +31,7 @@ public class ReportController {
         this.exportService = exportService;
     }
 
+    // GET /api/reports/proof-of-play?from=&to=[&screenIds=&mediaIds=] — playback stats; VIEWER and up
     @GetMapping("/proof-of-play")
     public ReportService.ProofOfPlayReport proofOfPlay(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -36,6 +41,7 @@ public class ReportController {
         return reportService.proofOfPlay(from, to, screenIds, mediaIds);
     }
 
+    // GET /api/reports/uptime?from=&to= — daily online % per screen; VIEWER and up
     @GetMapping("/uptime")
     public ReportService.UptimeReport uptime(
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -43,6 +49,8 @@ public class ReportController {
         return reportService.uptime(from, to);
     }
 
+    // GET /api/reports/export?report=proof-of-play|uptime&format=pdf|xlsx&from=&to=
+    // — downloads the chosen report as a file; VIEWER and up
     @GetMapping("/export")
     public ResponseEntity<byte[]> export(
             @RequestParam String report,
@@ -51,6 +59,7 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to,
             @RequestParam(required = false) List<UUID> screenIds,
             @RequestParam(required = false) List<UUID> mediaIds) throws Exception {
+        // 1. build the requested report, then render it in the requested format
         byte[] bytes;
         String base;
         if ("proof-of-play".equalsIgnoreCase(report)) {
@@ -68,6 +77,7 @@ public class ReportController {
         } else {
             throw ApiException.badRequest("Unknown report: " + report + " (use proof-of-play or uptime)");
         }
+        // 2. correct Content-Type + attachment filename so the browser downloads it
         boolean pdf = "pdf".equalsIgnoreCase(format);
         return ResponseEntity.ok()
                 .contentType(pdf ? MediaType.APPLICATION_PDF

@@ -9,6 +9,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "screen_groups" table. A row is a named bucket of screens
+ * (typically a city or region). Groups are also the unit of access control: content
+ * managers can be restricted to specific groups via the user_group_access table.
+ */
 @Entity
 @Table(name = "screen_groups")
 public class ScreenGroup {

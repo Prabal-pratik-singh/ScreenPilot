@@ -4,10 +4,16 @@ import jakarta.persistence.*;
 
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "playlist_items" table. A row is one slot in a
+ * {@link Playlist}: either an uploaded {@link MediaAsset}, an external web URL, or a
+ * YouTube video, with its position in the play order and an optional display duration.
+ */
 @Entity
 @Table(name = "playlist_items")
 public class PlaylistItem {
 
+    /** Source of the content: MEDIA = uploaded asset, URL = any web page, YOUTUBE = embedded YouTube video. */
     public enum ItemType { MEDIA, URL, YOUTUBE }
 
     @Id

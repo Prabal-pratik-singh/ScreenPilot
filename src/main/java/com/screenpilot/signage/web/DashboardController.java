@@ -9,6 +9,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
+/**
+ * REST endpoints for the portal home page numbers. @PreAuthorize at class
+ * level means every endpoint requires at least the VIEWER role.
+ */
 @RestController
 @RequestMapping("/api/dashboard")
 @PreAuthorize("hasRole('VIEWER')")
@@ -20,11 +24,13 @@ public class DashboardController {
         this.dashboardService = dashboardService;
     }
 
+    // GET /api/dashboard/stats — fleet counters (total/online/offline); any logged-in user
     @GetMapping("/stats")
     public DashboardDtos.Stats stats() {
         return dashboardService.stats();
     }
 
+    // GET /api/dashboard/tree — State > City > Store screen tree; any logged-in user
     @GetMapping("/tree")
     public List<DashboardDtos.TreeNode> tree() {
         return dashboardService.groupTree();

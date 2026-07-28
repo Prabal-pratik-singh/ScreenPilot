@@ -1,3 +1,7 @@
+// Landing page after login: headline stat cards (total/online/offline),
+// the live screen map, a collapsible state -> city -> group tree, and the
+// screens that have been offline longest. Data comes from three TanStack
+// Query fetches and stays fresh via the portal WebSocket cache updates.
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { useState } from 'react'
@@ -8,6 +12,7 @@ import { Card, PageHeader, Skeleton, StatusDot, EmptyState } from '../components
 import ScreensMap from '../components/ScreensMap'
 import { offlineFor } from '../lib/format'
 
+// One headline number with an icon; shows a skeleton while loading.
 function StatCard({ icon: Icon, label, value, tone, loading }) {
   const tones = {
     ink: 'bg-ink-50 text-ink-600',
@@ -32,6 +37,8 @@ function StatCard({ icon: Icon, label, value, tone, loading }) {
   )
 }
 
+// Recursive row of the locations tree: expands/collapses its children and
+// shows per-node online/offline counts; clicking a leaf filters the Screens page.
 function TreeNode({ node, depth = 0, onSelect }) {
   const [open, setOpen] = useState(depth === 0)
   const hasChildren = node.children?.length > 0
@@ -86,6 +93,7 @@ export default function DashboardPage() {
   const tree = useQuery({ queryKey: ['dashboard', 'tree'], queryFn: () => api.get('/dashboard/tree').then((r) => r.data) })
   const screens = useQuery({ queryKey: ['screens', 'all'], queryFn: () => api.get('/screens').then((r) => r.data) })
 
+  // Oldest heartbeat first = longest offline; show at most 8.
   const longestOffline = (screens.data || [])
     .filter((s) => s.status === 'OFFLINE')
     .sort((a, b) => {
@@ -95,6 +103,7 @@ export default function DashboardPage() {
     })
     .slice(0, 8)
 
+  // Tree node key is "state/city/group"; turn it into Screens page filters.
   const onTreeSelect = (node) => {
     const parts = node.key.split('/')
     const params = new URLSearchParams()

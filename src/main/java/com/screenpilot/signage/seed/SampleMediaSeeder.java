@@ -24,7 +24,12 @@ import java.nio.file.Path;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
-/** Seeds a few branded demo assets so playlists can be built immediately. */
+/**
+ * Seeds a few branded demo assets so playlists can be built immediately.
+ * A {@code CommandLineRunner} with {@code @Order(2)}, so it runs at startup right after
+ * {@link DataSeeder}. It draws poster images in memory with Java2D and, when ffmpeg is
+ * installed, renders a short test-pattern video; skipped entirely once any media exists.
+ */
 @Component
 @Order(2)
 public class SampleMediaSeeder implements CommandLineRunner {

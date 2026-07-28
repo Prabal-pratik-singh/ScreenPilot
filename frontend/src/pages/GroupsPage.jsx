@@ -1,9 +1,14 @@
+// Screen Groups admin page (ADMIN and up). Groups both organise screens and
+// scope what non-admin users are allowed to see. Simple CRUD: card grid,
+// create/edit modal, delete confirmation — the server rejects deleting a
+// group that would leave things orphaned, and the error shows in the dialog.
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Plus, FolderTree, Pencil, Trash2, MonitorPlay } from 'lucide-react'
 import { api, errorMessage } from '../api/client'
 import { Card, PageHeader, Skeleton, EmptyState, Modal, Field, Spinner, ConfirmDialog } from '../components/ui'
 
+// Create/edit form in a modal; `existing` decides POST vs PUT.
 function GroupModal({ open, onClose, existing }) {
   const queryClient = useQueryClient()
   const [name, setName] = useState(existing?.name || '')

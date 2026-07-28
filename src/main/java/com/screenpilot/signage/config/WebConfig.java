@@ -9,6 +9,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.List;
 
+/**
+ * Small Spring MVC tweaks that plain defaults don't cover: partial-content responses for
+ * video seeking, and correct URL generation when the app runs behind a reverse proxy or
+ * HTTPS tunnel. Implements {@code WebMvcConfigurer} to hook into MVC setup without
+ * replacing it.
+ */
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 

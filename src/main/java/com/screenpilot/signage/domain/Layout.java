@@ -9,6 +9,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "layouts" table. A row is a screen layout design: a named
+ * canvas (landscape or portrait) split into rectangular {@link LayoutZone}s, so one
+ * display can show several things at once (e.g. main video + ticker + logo).
+ */
 @Entity
 @Table(name = "layouts")
 public class Layout {
@@ -23,6 +28,7 @@ public class Layout {
     @Column(nullable = false)
     private Screen.Orientation orientation = Screen.Orientation.LANDSCAPE;
 
+    // Zones live and die with their layout (cascade + orphanRemoval); ordered by z-index.
     @OneToMany(mappedBy = "layout", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @OrderBy("z ASC")
     private List<LayoutZone> zones = new ArrayList<>();

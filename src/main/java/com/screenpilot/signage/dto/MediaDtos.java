@@ -10,17 +10,24 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * DTOs (Data Transfer Objects) for the media-library endpoints. Responses include
+ * HMAC-signed file/thumbnail URLs so <img>/<video> tags can fetch binaries without an
+ * auth header. Each is a Java record; this outer class is only a namespace.
+ */
 public final class MediaDtos {
 
     private MediaDtos() {
     }
 
+    /** Sent as a minimal reference to the user who uploaded the asset. */
     public record UploaderRef(UUID id, String name) {
     }
 
     /** Signed links stay valid this long; clients refetch listings well within it. */
     public static final long MEDIA_URL_TTL_SECONDS = 12 * 3600;
 
+    /** Sent when listing the library or after an upload: asset metadata plus signed download URLs. */
     public record MediaResponse(
             UUID id,
             String name,
@@ -70,15 +77,18 @@ public final class MediaDtos {
         return String.join(",", tags.stream().map(String::trim).filter(s -> !s.isEmpty()).distinct().toList());
     }
 
+    /** Received when editing asset metadata (rename, move folder, retag) — never the file itself. */
     public record UpdateMediaRequest(
             @NotBlank @Size(max = 300) String name,
             @Size(max = 200) String folder,
             List<String> tags) {
     }
 
+    /** Sent as a minimal playlist reference inside UsageResponse. */
     public record PlaylistRef(UUID id, String name) {
     }
 
+    /** Sent by the usage endpoint: which playlists reference this asset (warned about before delete). */
     public record UsageResponse(List<PlaylistRef> playlists) {
     }
 }

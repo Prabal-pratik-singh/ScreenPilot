@@ -1,3 +1,7 @@
+// Single-screen detail page (/screens/:id): live "now playing" card, the
+// schedules and per-media download status reported by the player's
+// heartbeats, device details, storage gauge, and an admin remote-control
+// panel (reload / clear cache / screenshot) with recent command history.
 import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -18,6 +22,8 @@ const DL_BADGE = {
   pending: { tone: 'ink', label: 'Pending' },
 }
 
+// Look one media id up in the mediaState summary the player heartbeats send
+// (cached / downloading / failed buckets) and map it to a badge status.
 function downloadStatusOf(mediaId, mediaState) {
   if (!mediaState) return 'pending'
   const id = String(mediaId)
@@ -28,6 +34,9 @@ function downloadStatusOf(mediaId, mediaState) {
   return 'pending'
 }
 
+// Shows what this screen is meant to play: its active schedules with the
+// playlist items, plus the download state of every required media file.
+// Refetches every 20s to track progress.
 function ContentPanel({ screen }) {
   const content = useQuery({
     queryKey: ['screen', screen.id, 'content'],
@@ -115,6 +124,7 @@ function ContentPanel({ screen }) {
   )
 }
 
+// Label/value row used in the Device details card.
 function InfoRow({ label, children }) {
   return (
     <div className="flex justify-between gap-4 py-2 border-b border-ink-100/60 last:border-0">
@@ -124,6 +134,9 @@ function InfoRow({ label, children }) {
   )
 }
 
+// Remote-control card: admins push RELOAD / CLEAR_CACHE / SCREENSHOT
+// commands to the player (delivered over its WebSocket) and see the latest
+// screenshot plus a short command history with SENT/ACKED/COMPLETED badges.
 function CommandsPanel({ screen, isAdmin }) {
   const queryClient = useQueryClient()
   const [feedback, setFeedback] = useState(null)
@@ -224,6 +237,8 @@ function CommandsPanel({ screen, isAdmin }) {
   )
 }
 
+// Edit form for the screen's metadata (name, store, location, group,
+// orientation, resolution, coordinates); PUTs and patches the query cache.
 function EditScreenModal({ screen, groups, open, onClose }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
@@ -301,6 +316,7 @@ function EditScreenModal({ screen, groups, open, onClose }) {
   )
 }
 
+// Page component: loads the screen by route id and assembles the panels.
 export default function ScreenDetailPage() {
   const { id } = useParams()
   const navigate = useNavigate()

@@ -6,10 +6,17 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "pairing_codes" table. A row is one short-lived 6-character
+ * code shown on an unpaired TV. An admin types the code into the portal to link that
+ * device to a Screen; the player polls with the code until pairing completes, then
+ * collects its device token.
+ */
 @Entity
 @Table(name = "pairing_codes")
 public class PairingCode {
 
+    /** PENDING = waiting for an admin, PAIRED = linked to a screen, EXPIRED = code timed out. */
     public enum Status { PENDING, PAIRED, EXPIRED }
 
     @Id

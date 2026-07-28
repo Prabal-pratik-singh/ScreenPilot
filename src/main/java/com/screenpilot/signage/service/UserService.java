@@ -16,6 +16,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Admin management of portal users: create, edit, activate/deactivate, and
+ * assign screen-group restrictions. Passwords are stored only as
+ * PasswordEncoder (BCrypt) hashes; you can never deactivate yourself.
+ */
 @Service
 public class UserService {
 
@@ -30,6 +35,7 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    /** All users, oldest first. */
     @Transactional(readOnly = true)
     public List<UserDtos.UserResponse> list() {
         return userRepository.findAll().stream()
@@ -38,6 +44,7 @@ public class UserService {
                 .toList();
     }
 
+    /** Creates a user with a hashed password; 409 when the email is already registered. */
     @Transactional
     public UserDtos.UserResponse create(UserDtos.CreateUserRequest req) {
         String email = req.email().trim().toLowerCase();
@@ -49,11 +56,13 @@ public class UserService {
         return UserDtos.UserResponse.from(userRepository.save(user));
     }
 
+    /** Updates name/role, optionally resets the password, and toggles active status. */
     @Transactional
     public UserDtos.UserResponse update(UUID id, UserDtos.UpdateUserRequest req) {
         User user = userRepository.findById(id).orElseThrow(() -> ApiException.notFound("User not found"));
         user.setFullName(req.fullName().trim());
         user.setRole(req.role());
+        // blank password means "leave the current password alone"
         if (req.password() != null && !req.password().isBlank()) {
             user.setPasswordHash(passwordEncoder.encode(req.password()));
         }
@@ -67,6 +76,7 @@ public class UserService {
         return UserDtos.UserResponse.from(userRepository.save(user));
     }
 
+    /** Enables or disables a login; self-deactivation is blocked. */
     @Transactional
     public void setActive(UUID id, boolean active) {
         User user = userRepository.findById(id).orElseThrow(() -> ApiException.notFound("User not found"));
@@ -77,6 +87,7 @@ public class UserService {
         userRepository.save(user);
     }
 
+    // replaces the user's group restrictions; null means "leave unchanged"
     private void applyGroups(User user, List<UUID> groupIds) {
         if (groupIds == null) {
             return;

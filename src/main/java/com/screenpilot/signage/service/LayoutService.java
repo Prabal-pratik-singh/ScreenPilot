@@ -20,6 +20,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * CRUD for multi-zone layouts: a layout splits the screen into zones
+ * (MEDIA / TICKER / WIDGET / LOGO) positioned in percentages, so the same
+ * layout scales to any resolution. Zone config is stored as free-form JSON.
+ */
 @Service
 public class LayoutService {
 
@@ -45,22 +50,26 @@ public class LayoutService {
         this.events = events;
     }
 
+    /** All layouts, most recently updated first. */
     @Transactional(readOnly = true)
     public List<LayoutDtos.LayoutResponse> list() {
         return layoutRepository.findAllByOrderByUpdatedAtDesc().stream().map(this::toDto).toList();
     }
 
+    /** One layout with its zones. */
     @Transactional(readOnly = true)
     public LayoutDtos.LayoutResponse get(UUID id) {
         return toDto(getEntity(id));
     }
 
+    /** Loads the entity with zones eagerly fetched, or throws 404. */
     @Transactional(readOnly = true)
     public Layout getEntity(UUID id) {
         return layoutRepository.findWithZonesById(id)
                 .orElseThrow(() -> ApiException.notFound("Layout not found"));
     }
 
+    /** Creates a layout pre-filled with zones from the chosen preset (default FULLSCREEN). */
     @Transactional
     public LayoutDtos.LayoutResponse create(LayoutDtos.CreateLayoutRequest req) {
         Layout layout = new Layout(req.name().trim(), req.orientation(),
@@ -69,20 +78,24 @@ public class LayoutService {
         return toDto(layoutRepository.save(layout));
     }
 
+    /** Saves the layout editor state: replaces all zones with the submitted set. */
     @Transactional
     public LayoutDtos.LayoutResponse update(UUID id, LayoutDtos.SaveLayoutRequest req) {
         Layout layout = getEntity(id);
         layout.setName(req.name().trim());
         layout.setOrientation(req.orientation());
+        // 1. full replace: drop existing zones and rebuild from the request
         layout.getZones().clear();
         int index = 0;
         for (LayoutDtos.SaveZoneRequest zoneReq : req.zones()) {
             LayoutZone zone = new LayoutZone(layout, zoneReq.type());
+            // 2. coordinates are percentages — clamp to 0..100 so nothing renders off-screen
             zone.setX(clampPct(zoneReq.x()));
             zone.setY(clampPct(zoneReq.y()));
             zone.setW(clampPct(zoneReq.w()));
             zone.setH(clampPct(zoneReq.h()));
             zone.setZ(zoneReq.z() != null ? zoneReq.z() : ++index);
+            // 3. MEDIA zones may reference the playlist they should loop
             if (zoneReq.type() == LayoutZone.Type.MEDIA && zoneReq.playlistId() != null) {
                 Playlist playlist = playlistRepository.findById(zoneReq.playlistId())
                         .orElseThrow(() -> ApiException.badRequest("Playlist not found for zone"));
@@ -93,12 +106,14 @@ public class LayoutService {
             }
             layout.getZones().add(zone);
         }
+        // 4. persist and notify so screens using this layout re-fetch their config
         layout.setUpdatedAt(Instant.now());
         layoutRepository.saveAndFlush(layout);
         events.publishEvent(new LayoutChangedEvent(layout.getId()));
         return toDto(layout);
     }
 
+    /** Deletes a layout unless an active schedule still shows it (409 Conflict). */
     @Transactional
     public void delete(UUID id) {
         Layout layout = getEntity(id);
@@ -146,6 +161,7 @@ public class LayoutService {
         return zone;
     }
 
+    // entity -> DTO, parsing each zone's JSON config (malformed config is dropped, not fatal)
     private LayoutDtos.LayoutResponse toDto(Layout layout) {
         List<LayoutDtos.ZoneResponse> zones = layout.getZones().stream().map(z -> {
             JsonNode config = null;

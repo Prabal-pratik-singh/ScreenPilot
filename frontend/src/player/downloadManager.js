@@ -5,6 +5,10 @@ import { playerDb } from './db'
  * Downloads required media into IndexedDB (sequential queue, progress
  * reporting) and hands out object URLs for playback. Media that is no
  * longer required is evicted.
+ *
+ * "generation" is a counter bumped on every sync()/clearAll(); the running
+ * download loop checks it and stops if a newer sync has taken over, so an
+ * old queue never keeps downloading stale media.
  */
 export class DownloadManager {
   constructor(onState) {
@@ -16,10 +20,13 @@ export class DownloadManager {
     this.generation = 0
   }
 
+  // Push a snapshot of the per-media state to the listener (PlayerPage UI).
   emit() {
     this.onState({ ...this.state })
   }
 
+  // Buckets media ids into cached / downloading / failed — sent to the
+  // server inside heartbeats so the portal can show cache health.
   summary() {
     const cached = []
     const downloading = []
@@ -36,6 +43,8 @@ export class DownloadManager {
     return this.state[mediaId]?.status === 'downloaded'
   }
 
+  // Blob from IndexedDB -> object URL (blob:...) that <video>/<img> can play
+  // offline. URLs are memoized so we don't create duplicates for one media.
   async getUrl(mediaId) {
     if (this.urls[mediaId]) return this.urls[mediaId]
     const blob = await playerDb.getMedia(mediaId)
@@ -68,6 +77,7 @@ export class DownloadManager {
       // cache cleanup is best-effort
     }
 
+    // Classify each required media: already cached, mid-download, or queued.
     const toDownload = []
     for (const m of required) {
       const id = String(m.id)
@@ -81,12 +91,15 @@ export class DownloadManager {
     }
     this.emit()
 
+    // Replace the queue and kick the worker loop if it isn't already running.
     this.queue = toDownload
     if (!this.running) {
       this.run(gen)
     }
   }
 
+  // Worker loop: downloads queued media one at a time (sequential, so a slow
+  // network isn't hammered), stopping early if a newer sync superseded us.
   async run(gen) {
     this.running = true
     while (this.queue.length > 0 && gen === this.generation) {
@@ -96,6 +109,8 @@ export class DownloadManager {
     this.running = false
   }
 
+  // Fetch one media file, streaming the body chunk by chunk so we can report
+  // percentage progress, then store the finished Blob in IndexedDB.
   async download(m) {
     const id = String(m.id)
     this.state[id] = { status: 'downloading', progress: 0 }
@@ -103,6 +118,8 @@ export class DownloadManager {
     try {
       const res = await fetch(`${API_BASE}${m.url || `/api/media/${id}/file`}`)
       if (!res.ok) throw new Error(`HTTP ${res.status}`)
+      // Progress is based on Content-Length when the server sends it,
+      // falling back to the size the config reported.
       const total = Number(res.headers.get('Content-Length')) || m.sizeBytes || 0
       const reader = res.body.getReader()
       const chunks = []
@@ -127,6 +144,8 @@ export class DownloadManager {
     this.emit()
   }
 
+  // Wipe the whole cache (used by the "clear cache" remote command):
+  // abort the queue, delete every blob and revoke every object URL.
   async clearAll() {
     this.generation++
     this.queue = []

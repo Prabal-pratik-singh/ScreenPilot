@@ -1,3 +1,8 @@
+// App shell for every logged-in portal page: fixed sidebar navigation on the
+// left, sticky header with the user menu on top, and the current page rendered
+// into React Router's <Outlet />. Nav items hide themselves when the user's
+// role is below the item's minRole. Also mounts usePortalSocket so live screen
+// status updates flow while any portal page is open.
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -40,6 +45,7 @@ const ROLE_LABEL = {
   VIEWER: 'Viewer',
 }
 
+// Renders the sidebar + header chrome around the active route's page.
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -97,6 +103,7 @@ export default function Layout() {
               </button>
               {menuOpen && (
                 <>
+                  {/* Invisible full-screen backdrop: clicking anywhere outside closes the menu */}
                   <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
                   <div className="absolute right-0 mt-1 w-48 card p-1.5 z-20">
                     <div className="px-3 py-2 border-b border-ink-100 mb-1">

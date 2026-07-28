@@ -19,6 +19,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+/**
+ * Portal-side screen management: listing/filtering, CRUD, pairing new devices,
+ * remote commands, and screenshot links. Reads need VIEWER; changes need ADMIN.
+ */
 @RestController
 @RequestMapping("/api/screens")
 public class ScreenController {
@@ -36,9 +40,11 @@ public class ScreenController {
         this.commandService = commandService;
     }
 
+    /** Body for POST /{id}/commands: which remote command to send. */
     public record CommandRequest(@NotNull ScreenCommand.Command command) {
     }
 
+    // GET /api/screens — filtered screen list; VIEWER and up (scoped to their groups)
     @GetMapping
     @PreAuthorize("hasRole('VIEWER')")
     public List<ScreenDtos.ScreenResponse> list(@RequestParam(required = false) UUID groupId,
@@ -49,6 +55,7 @@ public class ScreenController {
         return screenService.list(groupId, state, city, status, search);
     }
 
+    // GET /api/screens/{id} — one screen's details; VIEWER and up
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('VIEWER')")
     public ScreenDtos.ScreenResponse get(@PathVariable UUID id) {
@@ -63,30 +70,35 @@ public class ScreenController {
         return playerConfigService.config(id);
     }
 
+    // POST /api/screens — register a screen manually (without pairing); ADMIN only
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
     public ScreenDtos.ScreenResponse create(@Valid @RequestBody ScreenDtos.SaveScreenRequest request) {
         return screenService.create(request);
     }
 
+    // POST /api/screens/pair — claim a TV's pairing code and create its screen; ADMIN only
     @PostMapping("/pair")
     @PreAuthorize("hasRole('ADMIN')")
     public ScreenDtos.ScreenResponse pair(@Valid @RequestBody ScreenDtos.PairScreenRequest request) {
         return pairingService.pair(request);
     }
 
+    // PUT /api/screens/{id} — edit details/location/group; ADMIN only
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ScreenDtos.ScreenResponse update(@PathVariable UUID id, @Valid @RequestBody ScreenDtos.SaveScreenRequest request) {
         return screenService.update(id, request);
     }
 
+    // DELETE /api/screens/{id} — remove a screen; ADMIN only
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable UUID id) {
         screenService.delete(id);
     }
 
+    // POST /api/screens/bulk-group — move several screens into one group; ADMIN only
     @PostMapping("/bulk-group")
     @PreAuthorize("hasRole('ADMIN')")
     public void bulkGroup(@Valid @RequestBody ScreenDtos.BulkGroupRequest request) {
@@ -101,6 +113,7 @@ public class ScreenController {
         return Map.of("id", cmd.getId(), "command", cmd.getCommand().name(), "status", cmd.getStatus().name());
     }
 
+    // GET /api/screens/{id}/commands — last 10 commands and their statuses; VIEWER and up
     @GetMapping("/{id}/commands")
     @PreAuthorize("hasRole('VIEWER')")
     public List<Map<String, Object>> commandHistory(@PathVariable UUID id) {

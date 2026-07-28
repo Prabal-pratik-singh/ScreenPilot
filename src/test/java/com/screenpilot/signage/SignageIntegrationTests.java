@@ -38,6 +38,7 @@ class SignageIntegrationTests {
 
     // ---------------------------------------------------------------- helpers
 
+    // logs in through the real /api/auth/login endpoint and returns the access token
     @SuppressWarnings({"unchecked", "rawtypes"})
     private String login(String email, String password) {
         ResponseEntity<Map> res = rest.postForEntity("/api/auth/login",
@@ -46,6 +47,7 @@ class SignageIntegrationTests {
         return (String) res.getBody().get("accessToken");
     }
 
+    // builds "Authorization: Bearer <token>" + JSON headers for authenticated calls
     private HttpHeaders bearer(String token) {
         HttpHeaders headers = new HttpHeaders();
         headers.setBearerAuth(token);
@@ -55,6 +57,7 @@ class SignageIntegrationTests {
 
     // ---------------------------------------------------------------- auth + rbac
 
+    // bad credentials must come back 401, not 200 or a stack trace
     @Test
     void wrongPasswordIsRejected() {
         ResponseEntity<Map> res = rest.postForEntity("/api/auth/login",
@@ -62,6 +65,7 @@ class SignageIntegrationTests {
         assertThat(res.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
+    // the unrestricted admin sees the full seeded fleet
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void adminSeesSeededScreens() {
@@ -72,6 +76,7 @@ class SignageIntegrationTests {
         assertThat(res.getBody().size()).isGreaterThanOrEqualTo(12);
     }
 
+    // RBAC: a VIEWER can read screens but gets 403 on writes and on the users API
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void viewerIsReadOnly() {
@@ -90,6 +95,7 @@ class SignageIntegrationTests {
         assertThat(users.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
 
+    // group scoping: a manager restricted to the Ranchi group only sees Jharkhand screens
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void groupRestrictedManagerSeesOnlyTheirScreens() {
@@ -104,15 +110,18 @@ class SignageIntegrationTests {
 
     // ---------------------------------------------------------------- pairing + heartbeat
 
+    // full pairing handshake: request code -> admin pairs -> poll returns token -> heartbeat
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void pairingFlowDeliversTokenAndHeartbeatWorks() {
+        // 1. device side: ask for a pairing code (no auth needed yet)
         ResponseEntity<Map> codeRes = rest.postForEntity("/api/player/pair/request",
                 Map.of("deviceInfo", "it-test"), Map.class);
         assertThat(codeRes.getStatusCode()).isEqualTo(HttpStatus.OK);
         String code = (String) codeRes.getBody().get("code");
         assertThat(code).hasSize(6);
 
+        // 2. portal side: the admin claims the code and creates the screen
         String admin = login("admin@screenpilot.in", "ScreenPilot@123");
         ResponseEntity<Map> paired = rest.exchange("/api/screens/pair", HttpMethod.POST,
                 new HttpEntity<>(Map.of("code", code,
@@ -120,11 +129,13 @@ class SignageIntegrationTests {
                 Map.class);
         assertThat(paired.getStatusCode()).isEqualTo(HttpStatus.OK);
 
+        // 3. device side again: polling the code now yields PAIRED + the device token
         ResponseEntity<Map> poll = rest.getForEntity("/api/player/pair/poll/" + code, Map.class);
         String deviceToken = (String) poll.getBody().get("deviceToken");
         assertThat(poll.getBody().get("status")).isEqualTo("PAIRED");
         assertThat(deviceToken).isNotBlank();
 
+        // 4. the token authenticates heartbeats via the X-Device-Token header
         HttpHeaders device = new HttpHeaders();
         device.set("X-Device-Token", deviceToken);
         device.setContentType(MediaType.APPLICATION_JSON);
@@ -142,9 +153,11 @@ class SignageIntegrationTests {
 
     // ---------------------------------------------------------------- signed media urls
 
+    // HMAC-signed URLs: the /file binary opens only with a valid, untampered signature
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void mediaBinariesRequireValidSignature() {
+        // grab any seeded asset; its fileUrl arrives pre-signed (exp + sig)
         String admin = login("admin@screenpilot.in", "ScreenPilot@123");
         ResponseEntity<List> media = rest.exchange("/api/media", HttpMethod.GET,
                 new HttpEntity<>(bearer(admin)), List.class);
@@ -154,6 +167,7 @@ class SignageIntegrationTests {
         String id = (String) asset.get("id");
         assertThat(signedUrl).contains("exp=").contains("sig=");
 
+        // no signature -> 403; correct signature -> 200; tampered signature -> 403
         assertThat(rest.getForEntity("/api/media/" + id + "/file", byte[].class).getStatusCode())
                 .isEqualTo(HttpStatus.FORBIDDEN);
         assertThat(rest.getForEntity(signedUrl, byte[].class).getStatusCode())
@@ -164,6 +178,7 @@ class SignageIntegrationTests {
 
     // ---------------------------------------------------------------- schedule conflicts
 
+    // conflict rules: all-day vs all-day clashes, but a timed window over an all-day loop is fine
     @Test
     @SuppressWarnings({"unchecked", "rawtypes"})
     void conflictRulesTimedBeatsAllDayWithoutConflict() {
@@ -193,6 +208,7 @@ class SignageIntegrationTests {
             playlistId = (String) playlists.get(0).get("id");
         }
 
+        // create the baseline: an all-day playlist schedule on one screen
         Map<String, Object> allDay = new java.util.HashMap<>();
         allDay.put("name", "IT all-day");
         allDay.put("contentType", "PLAYLIST");

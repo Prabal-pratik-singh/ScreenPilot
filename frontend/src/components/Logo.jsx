@@ -1,3 +1,5 @@
+// Brand logo component used on the login page, sidebar and player screens.
+// Pure inline SVG (no image files), so it scales cleanly at any size.
 import clsx from 'clsx'
 
 /** ScreenPilot wordmark: marigold screen-with-play glyph + word. `dark` renders for navy backgrounds. */

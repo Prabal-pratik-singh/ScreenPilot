@@ -13,6 +13,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Read-only numbers for the portal home page: fleet-wide online/offline
+ * counters and a State -> City -> Store tree of screens. Everything is scoped
+ * to the screens the current user is allowed to see.
+ */
 @Service
 public class DashboardService {
 
@@ -22,6 +27,7 @@ public class DashboardService {
         this.screenService = screenService;
     }
 
+    /** Counts total / online / offline screens, plus those silent for over 24 hours. */
     @Transactional(readOnly = true)
     public DashboardDtos.Stats stats() {
         List<Screen> screens = screenService.accessibleScreens();
@@ -35,10 +41,12 @@ public class DashboardService {
         return new DashboardDtos.Stats(screens.size(), online, offline, offlineOver24h);
     }
 
+    /** Builds the State -> City -> Store tree with online/offline counts on every node. */
     @Transactional(readOnly = true)
     public List<DashboardDtos.TreeNode> groupTree() {
         List<Screen> screens = screenService.accessibleScreens();
 
+        // 1. bucket screens by state, then city, then store (sorted for a stable tree)
         Map<String, Map<String, Map<String, List<Screen>>>> byState = new LinkedHashMap<>();
         screens.stream()
                 .sorted(Comparator
@@ -51,6 +59,7 @@ public class DashboardService {
                         .computeIfAbsent(nullSafe(s.getStoreName()), k -> new ArrayList<>())
                         .add(s));
 
+        // 2. turn the nested map into TreeNodes, aggregating counts bottom-up
         List<DashboardDtos.TreeNode> stateNodes = new ArrayList<>();
         byState.forEach((state, cities) -> {
             List<DashboardDtos.TreeNode> cityNodes = new ArrayList<>();
@@ -68,6 +77,7 @@ public class DashboardService {
         return stateNodes;
     }
 
+    // builds one tree node with its online/offline tally
     private DashboardDtos.TreeNode node(String key, String label, String level, List<Screen> screens,
                                         List<DashboardDtos.TreeNode> children) {
         long online = screens.stream().filter(s -> s.getStatus() == Screen.Status.ONLINE).count();

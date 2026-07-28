@@ -4,10 +4,16 @@ import jakarta.persistence.*;
 
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "layout_zones" table. A row is one rectangular region inside a
+ * {@link Layout}: its position/size (x, y, w, h are fractions of the screen, 0..1), its
+ * stacking order (z), what kind of content it shows, and an optional playlist for MEDIA zones.
+ */
 @Entity
 @Table(name = "layout_zones")
 public class LayoutZone {
 
+    /** What the zone renders: playlist media, scrolling ticker, widget (clock/weather), static logo, or a web page. */
     public enum Type { MEDIA, TICKER, WIDGET, LOGO, WEB }
 
     @Id

@@ -1,3 +1,8 @@
+// Playlist list page: card grid of every playlist with item count, loop
+// duration and last-updated time. "New playlist" creates via a modal and
+// jumps straight into the PlaylistBuilder; delete uses a ConfirmDialog.
+// All server calls go through TanStack Query mutations that invalidate the
+// ['playlists'] cache on success. Editing requires CONTENT_MANAGER role.
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, Link } from 'react-router-dom'

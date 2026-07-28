@@ -1,3 +1,6 @@
+// Small display-formatting helpers used all over the portal UI:
+// durations ("3h 20m"), relative times ("5m ago"), IST timestamps,
+// file sizes ("1.4 MB") and playlist item lengths ("1m 05s").
 const IST = 'Asia/Kolkata'
 
 /** "3h 20m", "5d 4h", "45m", "just now" */
@@ -13,12 +16,14 @@ export function formatDuration(totalSeconds) {
   return `${m}m`
 }
 
+/** How long a screen has been silent, based on its last heartbeat time. */
 export function offlineFor(screen) {
   if (!screen?.lastHeartbeatAt) return 'never seen'
   const seconds = (Date.now() - new Date(screen.lastHeartbeatAt).getTime()) / 1000
   return formatDuration(seconds)
 }
 
+/** Relative "Xh Ym ago" label for any ISO timestamp. */
 export function timeAgo(iso) {
   if (!iso) return '—'
   const seconds = (Date.now() - new Date(iso).getTime()) / 1000
@@ -36,6 +41,7 @@ export function fmtIST(iso, withTime = true) {
   return new Intl.DateTimeFormat('en-IN', opts).format(date) + (withTime ? ' IST' : '')
 }
 
+/** File size with the right unit: B / KB / MB / GB. */
 export function fmtBytes(bytes) {
   if (bytes == null) return '—'
   if (bytes < 1024) return `${bytes} B`
@@ -44,6 +50,7 @@ export function fmtBytes(bytes) {
   return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
+/** Seconds as "Xm YYs" (or just "Ys" under a minute). */
 export function fmtSeconds(sec) {
   if (sec == null) return '—'
   const m = Math.floor(sec / 60)

@@ -11,6 +11,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Stores "proof of play" records — one row per media item a screen actually
+ * played, with start/end times. Players upload these in batches; reports and
+ * exports are built on top of this table.
+ */
 @Service
 public class PlaybackLogService {
 
@@ -27,14 +32,17 @@ public class PlaybackLogService {
         this.repository = repository;
     }
 
+    /** Persists a batch of playback entries from one screen; returns how many were accepted. */
     @Transactional
     public int saveBatch(UUID screenId, LogBatch batch) {
+        // 1. empty batches are a no-op, oversized ones are rejected outright
         if (batch == null || batch.logs() == null || batch.logs().isEmpty()) {
             return 0;
         }
         if (batch.logs().size() > 1000) {
             throw ApiException.badRequest("Batch too large (max 1000 entries)");
         }
+        // 2. drop entries with missing or reversed timestamps, then map to entities
         List<PlaybackLog> entities = batch.logs().stream()
                 .filter(e -> e.startedAt() != null && e.endedAt() != null && !e.endedAt().isBefore(e.startedAt()))
                 .map(e -> {
@@ -52,6 +60,7 @@ public class PlaybackLogService {
                     return log;
                 })
                 .toList();
+        // 3. one bulk insert for the whole batch
         repository.saveAll(entities);
         return entities.size();
     }

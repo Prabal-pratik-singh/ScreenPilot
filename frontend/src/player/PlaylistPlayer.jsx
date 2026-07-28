@@ -9,6 +9,8 @@ import { youTubeId } from '../lib/media'
 
 const FADE_MS = 400
 
+// How long an item stays on screen. Videos return null (we wait for the
+// `ended` event instead of a timer); everything else gets a fixed duration.
 function effectiveSeconds(item) {
   if (item.itemType === 'MEDIA' && item.media?.type === 'VIDEO') {
     return item.media.durationSeconds || null // null = wait for `ended`
@@ -16,6 +18,9 @@ function effectiveSeconds(item) {
   return item.effectiveDurationSeconds || item.durationSeconds || (item.itemType === 'MEDIA' ? 10 : 20)
 }
 
+// Renders the actual content of one buffer layer (video / image / PDF /
+// YouTube / web page). `visible` says whether this layer is currently the
+// front one; the hidden layer is where the next item preloads.
 function SlotContent({ slot, visible, onVideoEnded, onUrlFail }) {
   const videoRef = useRef(null)
   const [urlLoaded, setUrlLoaded] = useState(false)
@@ -100,8 +105,11 @@ function SlotContent({ slot, visible, onVideoEnded, onUrlFail }) {
   return null
 }
 
+// Monotonic id so every slot instance gets a unique React key/uid.
 let slotUid = 0
 
+// The playlist loop itself. Owns the double buffer: `slots` holds the two
+// layers, `front` says which index (0 or 1) is on top right now.
 export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying }) {
   const [slots, setSlots] = useState([null, null])
   const [front, setFront] = useState(0)
@@ -111,6 +119,8 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
   const itemsRef = useRef(items)
   itemsRef.current = items
 
+  // An item can play if its media blob is already cached (offline-safe),
+  // or — for YouTube/URL items — if the device currently has network.
   const isPlayable = useCallback(
     (item) => {
       if (item.itemType === 'MEDIA') {
@@ -121,6 +131,8 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
     [dm],
   )
 
+  // Prepares one slot for the buffer: resolves the cached blob's object URL
+  // for media items so the layer can render it instantly.
   const buildSlot = useCallback(
     async (index) => {
       const item = itemsRef.current[index]
@@ -135,6 +147,8 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
     [dm],
   )
 
+  // Round-robin search: the first playable item after `from`, wrapping
+  // around the list; -1 when nothing is playable at all.
   const nextPlayableIndex = useCallback(
     (from) => {
       const list = itemsRef.current
@@ -148,6 +162,8 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
     [isPlayable],
   )
 
+  // Emits one proof-of-play record (what played, from when to when) for the
+  // item that just finished; PlayerPage queues it for upload.
   const logCurrent = useCallback(
     (item) => {
       if (!item || !startedAtRef.current) return
@@ -166,8 +182,12 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
     [onLog, context],
   )
 
+  // advance() is recreated on every render; timers and video callbacks call
+  // it through this ref so they always hit the latest version.
   const advanceRef = useRef(() => {})
 
+  // Arms the timer that will flip to the next item once this one's duration
+  // elapses (videos rely on `ended` instead, with a 30-min safety cap).
   const scheduleAdvance = useCallback((item) => {
     clearTimeout(timerRef.current)
     const seconds = effectiveSeconds(item)
@@ -179,10 +199,17 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
     }
   }, [])
 
+  // The heart of the double buffer. Each call:
+  //   1. logs the item that just finished,
+  //   2. makes sure the hidden (back) layer holds the next item,
+  //   3. flips `front` so the layers cross-fade,
+  //   4. preloads the item after that into the now-hidden layer.
   const advance = useCallback(async () => {
+    // Step 1: proof-of-play for the outgoing item.
     const currentSlot = slots[front]
     if (currentSlot) logCurrent(currentSlot.item)
 
+    // Step 2: the back layer should already be preloaded from last time.
     const backIdx = 1 - front
     let backSlot = slots[backIdx]
     // if the preloaded slot went stale (playlist changed), rebuild it
@@ -193,13 +220,15 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
       if (!backSlot) return
     }
 
+    // Step 3: flip the buffers — the CSS opacity transition does the fade —
+    // and arm the timer for the item that is now on screen.
     indexRef.current = backSlot.index
     startedAtRef.current = new Date()
     onNowPlaying?.(backSlot.item)
     setFront(backIdx)
     scheduleAdvance(backSlot.item)
 
-    // preload the following item into the now-hidden layer after the fade
+    // Step 4: preload the following item into the now-hidden layer after the fade
     const followIdx = nextPlayableIndex(backSlot.index)
     setTimeout(async () => {
       const s = followIdx === -1 ? null : await buildSlot(followIdx)
@@ -214,6 +243,8 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
   advanceRef.current = advance
 
   // (re)initialize when the playable set changes
+  // contentKey fingerprints "what could play right now" (schedule, item list,
+  // which items are cached); the init effect below re-runs when it changes.
   const playableKey = items
     .map((it, i) => (isPlayable(it) ? i : null))
     .filter((x) => x != null)
@@ -223,6 +254,7 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
   useEffect(() => {
     let cancelled = false
     clearTimeout(timerRef.current)
+    // Fresh start: build the first slot, show it, preload the second.
     const init = async () => {
       const firstIdx = nextPlayableIndex(-1)
       if (firstIdx === -1) {
@@ -255,6 +287,7 @@ export default function PlaylistPlayer({ items, context, dm, onLog, onNowPlaying
 
   return (
     <div className="absolute inset-0 bg-black">
+      {/* The two stacked buffer layers; only opacity/z-index change on flip */}
       {[0, 1].map((i) => (
         <div
           key={i}

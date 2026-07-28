@@ -7,6 +7,12 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "screens" table. A row is one physical display (a TV/player
+ * device in a store): its identity and location, live health data reported by heartbeats
+ * (status, current item, storage), and the device token that authenticates the paired
+ * player app.
+ */
 @Entity
 @Table(name = "screens")
 public class Screen {
@@ -58,6 +64,7 @@ public class Screen {
     @Column(name = "app_version")
     private String appVersion;
 
+    /** Hashed credential the player app presents on every request; set during pairing. */
     @Column(name = "device_token", unique = true)
     private String deviceToken;
 

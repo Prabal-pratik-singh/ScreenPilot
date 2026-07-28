@@ -16,6 +16,12 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/**
+ * Builds the two analytics reports. Proof-of-play aggregates playback logs
+ * (how often each creative ran, on which screens). Uptime replays the
+ * ONLINE/OFFLINE event history to compute per-screen daily online percentages.
+ * All bucketing is done in IST via TimeUtil.
+ */
 @Service
 public class ReportService {
 
@@ -52,15 +58,18 @@ public class ReportService {
         this.screenService = screenService;
     }
 
+    // midnight IST for a date, as an Instant
     private Instant startOfDayIST(LocalDate date) {
         return date.atStartOfDay(TimeUtil.IST).toInstant();
     }
 
     // -------------------------------------------------- proof of play
 
+    /** Proof-of-play: play counts and on-screen time per creative x screen, plus a per-day series. */
     @Transactional(readOnly = true)
     public ProofOfPlayReport proofOfPlay(LocalDate from, LocalDate to, List<UUID> screenIds, List<UUID> mediaIds) {
         validateRange(from, to);
+        // 1. scope the report to screens the user can see (and any explicit screen filter)
         Map<UUID, Screen> accessible = screenService.accessibleScreens().stream()
                 .collect(Collectors.toMap(Screen::getId, s -> s));
         List<UUID> scope = (screenIds == null || screenIds.isEmpty())
@@ -70,12 +79,14 @@ public class ReportService {
             return new ProofOfPlayReport(List.of(), 0, 0, List.of());
         }
 
+        // 2. load logs in the IST date range, optionally filtered by media
         Instant fromInstant = startOfDayIST(from);
         Instant toInstant = startOfDayIST(to.plusDays(1));
         List<PlaybackLog> logs = playbackLogs.findInRange(fromInstant, toInstant, scope).stream()
                 .filter(l -> mediaIds == null || mediaIds.isEmpty() || (l.getMediaId() != null && mediaIds.contains(l.getMediaId())))
                 .toList();
 
+        // 3. group logs by (creative title, media, screen)
         record Key(String creative, UUID mediaId, UUID screenId) {
         }
         Map<Key, List<PlaybackLog>> grouped = new LinkedHashMap<>();
@@ -84,6 +95,7 @@ public class ReportService {
             grouped.computeIfAbsent(new Key(creative, l.getMediaId(), l.getScreenId()), k -> new ArrayList<>()).add(l);
         }
 
+        // 4. one row per group: count, total seconds, first/last play, most-played first
         List<ProofOfPlayRow> rows = grouped.entrySet().stream().map(e -> {
             List<PlaybackLog> group = e.getValue();
             Screen screen = accessible.get(e.getKey().screenId());
@@ -99,7 +111,7 @@ public class ReportService {
                     group.stream().map(PlaybackLog::getStartedAt).max(Instant::compareTo).orElse(null));
         }).sorted(Comparator.comparingLong(ProofOfPlayRow::playCount).reversed()).toList();
 
-        // plays per IST day for the bar chart
+        // 5. plays per IST day for the bar chart
         Map<String, Long> perDay = new TreeMap<>();
         for (LocalDate d = from; !d.isAfter(to); d = d.plusDays(1)) {
             perDay.put(d.toString(), 0L);
@@ -118,6 +130,7 @@ public class ReportService {
 
     // -------------------------------------------------- uptime
 
+    /** Uptime report: daily online % per screen, an hourly "screens online" line, and red flags. */
     @Transactional(readOnly = true)
     public UptimeReport uptime(LocalDate from, LocalDate to) {
         validateRange(from, to);
@@ -125,12 +138,14 @@ public class ReportService {
         if (screens.isEmpty()) {
             return new UptimeReport(List.of(), List.of(), List.of());
         }
+        // 1. load the whole status-event history up to the range end, grouped per screen
         List<UUID> ids = screens.stream().map(Screen::getId).toList();
         Instant rangeEnd = min(Instant.now(), startOfDayIST(to.plusDays(1)));
         List<ScreenStatusEvent> events = statusEvents.findBefore(ids, rangeEnd);
         Map<UUID, List<ScreenStatusEvent>> byScreen = events.stream()
                 .collect(Collectors.groupingBy(ScreenStatusEvent::getScreenId));
 
+        // 2. for every screen, walk each IST day and compute online seconds / day length
         List<UptimeRow> rows = new ArrayList<>();
         for (Screen screen : screens) {
             List<ScreenStatusEvent> evts = byScreen.getOrDefault(screen.getId(), List.of());
@@ -153,9 +168,10 @@ public class ReportService {
             rows.add(new UptimeRow(screen.getId(), screen.getName(), screen.getStoreName(), screen.getCity(),
                     counted == 0 ? 0 : Math.round(sum / counted * 10) / 10.0, days));
         }
+        // worst screens first
         rows.sort(Comparator.comparingDouble(UptimeRow::avgPct));
 
-        // hourly "screens online" line
+        // 3. hourly "screens online" line (6h steps when the range spans 4+ days)
         List<SeriesPoint> onlineOverTime = new ArrayList<>();
         Instant cursor = startOfDayIST(from);
         while (!cursor.isAfter(rangeEnd)) {
@@ -166,15 +182,19 @@ public class ReportService {
             cursor = cursor.plus(Duration.ofHours(Duration.between(startOfDayIST(from), rangeEnd).toDays() >= 4 ? 6 : 1));
         }
 
+        // 4. red flags: up to 8 screens averaging under 90%
         List<UptimeRow> redFlags = rows.stream().filter(r -> r.avgPct() < 90).limit(8).toList();
         return new UptimeReport(rows, onlineOverTime, redFlags);
     }
 
     /** Walks the event history to sum online time inside [start, end). */
     private double onlineSecondsInWindow(List<ScreenStatusEvent> events, Instant start, Instant end, Screen screen) {
+        // 1. establish the state at the window start from the last event before it
         boolean online = statusAt(events, start, screen);
         Instant cursor = start;
         double seconds = 0;
+        // 2. sweep the events inside the window; whenever the state was ONLINE,
+        //    add the stretch between the cursor and this transition
         for (ScreenStatusEvent e : events) {
             if (!e.getAt().isAfter(start)) continue;
             if (!e.getAt().isBefore(end)) break;
@@ -184,6 +204,7 @@ public class ReportService {
             online = e.getStatus() == Screen.Status.ONLINE;
             cursor = e.getAt();
         }
+        // 3. close out the final stretch up to the window end
         if (online) {
             seconds += Duration.between(cursor, end).getSeconds();
         }
@@ -194,6 +215,7 @@ public class ReportService {
         return statusAt(events, at, screen);
     }
 
+    // status at a moment = status of the most recent event at or before it
     private boolean statusAt(List<ScreenStatusEvent> events, Instant at, Screen screen) {
         ScreenStatusEvent last = null;
         for (ScreenStatusEvent e : events) {
@@ -211,6 +233,7 @@ public class ReportService {
         return a.isBefore(b) ? a : b;
     }
 
+    // both dates required, ordered, and at most ~3 months apart
     private void validateRange(LocalDate from, LocalDate to) {
         if (from == null || to == null) {
             throw ApiException.badRequest("from and to dates are required (YYYY-MM-DD)");

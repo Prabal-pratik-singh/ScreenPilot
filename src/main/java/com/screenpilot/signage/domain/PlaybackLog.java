@@ -5,6 +5,13 @@ import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "playback_logs" table. A row records one "proof of play":
+ * a specific item that a specific screen actually displayed, with start/end times.
+ * Reports and exports are built from these rows. IDs are stored as plain UUID columns
+ * (not foreign-key relations) so logs survive even if the playlist/media is later deleted;
+ * itemTitle/itemType are denormalized copies kept for the same reason.
+ */
 @Entity
 @Table(name = "playback_logs")
 public class PlaybackLog {

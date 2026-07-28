@@ -1,3 +1,8 @@
+// The TV player, served at /player. This one component runs the whole device
+// lifecycle: pairing (6-digit code shown until an admin claims it), fetching
+// the playback config, caching media through the DownloadManager, evaluating
+// schedules every few seconds, heartbeating over STOMP over WebSocket (HTTP
+// fallback), reacting to remote commands, and rendering the active content.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Client } from '@stomp/stompjs'
 import { WS_URL, API_BASE } from '../api/client'
@@ -15,6 +20,7 @@ const CONFIG_POLL_MS = 5 * 60 * 1000
 const SCHEDULE_TICK_MS = 5000
 const CONFIG_CACHE_KEY = 'screenpilot.player.config'
 
+// Big IST clock shown on the idle screen; re-renders every second.
 function ISTClock({ className }) {
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -35,6 +41,8 @@ function ISTClock({ className }) {
   )
 }
 
+// Full-screen pairing view: shows the 6-digit code the admin must type into
+// the portal, plus expiry / connection-error states.
 function PairingScreen({ code, expired, error }) {
   return (
     <div className="h-full w-full bg-ink-800 text-white flex flex-col items-center justify-center gap-10 p-8">
@@ -59,6 +67,7 @@ function PairingScreen({ code, expired, error }) {
   )
 }
 
+// Shown when the screen is paired but has nothing scheduled to play.
 function IdleScreen({ screenName, note }) {
   return (
     <div className="h-full w-full bg-ink-800 text-white flex flex-col items-center justify-center gap-12">
@@ -72,6 +81,8 @@ function IdleScreen({ screenName, note }) {
   )
 }
 
+// Shown while required media is still downloading: overall progress bar plus
+// the percentage of the file currently in flight.
 function PreparingScreen({ screenName, downloadState }) {
   const entries = Object.entries(downloadState)
   const done = entries.filter(([, s]) => s.status === 'downloaded').length
@@ -114,6 +125,8 @@ function useAutoHideCursor(timeoutMs = 3000) {
   return hidden
 }
 
+// The main player component. State flows: unpaired -> pairing screen;
+// paired -> fetch config -> download media -> pick schedule -> play.
 export default function PlayerPage() {
   const [device, setDevice] = useState(loadDevice)
   const [pairCode, setPairCode] = useState(null)
@@ -134,6 +147,9 @@ export default function PlayerPage() {
   const dmRef = useRef(dm)
 
   // ---------------- pairing ----------------
+  // Runs only while unpaired: request a code, then poll the server every few
+  // seconds until an admin claims it (-> we get a device token), the code
+  // expires (-> request a fresh one), or the server is unreachable (-> retry).
   useEffect(() => {
     if (device) return undefined
     let cancelled = false
@@ -189,6 +205,8 @@ export default function PlayerPage() {
     }
   }, [device])
 
+  // Forget the pairing (used when the server answers 401 = token revoked);
+  // the page falls back to the pairing screen automatically.
   const unpair = useCallback(() => {
     saveDevice(null)
     localStorage.removeItem(CONFIG_CACHE_KEY)
@@ -197,6 +215,10 @@ export default function PlayerPage() {
   }, [])
 
   // ---------------- config (with offline fallback) ----------------
+  // Pull the playback config (schedules, playlists, layouts, requiredMedia),
+  // cache it in localStorage for offline boots, and kick the download
+  // manager to sync media. Called on load, every 5 min, on WS pushes, and
+  // whenever the browser regains network.
   const refreshConfig = useCallback(async () => {
     const dev = deviceRef.current
     if (!dev) return
@@ -238,6 +260,9 @@ export default function PlayerPage() {
   }, [device, refreshConfig])
 
   // ---------------- schedule engine tick ----------------
+  // Every 5s re-evaluate which schedule should be live (IST wall-clock);
+  // only swap state when the winning schedule actually changed, so playback
+  // isn't restarted needlessly.
   useEffect(() => {
     if (!config) return undefined
     const evaluate = () => {
@@ -250,6 +275,8 @@ export default function PlayerPage() {
   }, [config])
 
   // ---------------- heartbeats ----------------
+  // Assemble the status snapshot the portal shows for this screen:
+  // playing/idle, current item, app version, storage usage, cache summary.
   const buildHeartbeat = useCallback(async () => {
     const storage = await storageEstimateMb()
     const item = nowPlayingRef.current
@@ -264,6 +291,8 @@ export default function PlayerPage() {
     }
   }, [])
 
+  // Send a heartbeat, preferring the open STOMP connection (cheap, no HTTP
+  // round-trip) and falling back to the REST endpoint when the socket is down.
   const sendHeartbeat = useCallback(async () => {
     const dev = deviceRef.current
     if (!dev) return
@@ -289,6 +318,9 @@ export default function PlayerPage() {
   }, [buildHeartbeat, unpair])
 
   // ---------------- remote commands ----------------
+  // Commands pushed from the portal: RELOAD (refresh the page), CLEAR_CACHE
+  // (wipe IndexedDB + refetch), SCREENSHOT. Each is acknowledged over HTTP
+  // so the portal can show delivery status.
   const handleCommand = useCallback(
     async (msg) => {
       const command = msg.command || msg.type
@@ -317,6 +349,10 @@ export default function PlayerPage() {
   )
 
   // ---------------- websocket ----------------
+  // Open the STOMP over WebSocket connection once paired: subscribe to this
+  // screen's topic for pushed updates (schedule/playlist/layout changes and
+  // COMMANDs), and start the 30s heartbeat interval. reconnectDelay makes
+  // stompjs re-dial automatically after a drop.
   useEffect(() => {
     if (!device) return undefined
     const client = new Client({
@@ -357,6 +393,8 @@ export default function PlayerPage() {
   }, [device, sendHeartbeat, refreshConfig, handleCommand])
 
   // ---------------- proof-of-play flusher ----------------
+  // Background uploader for queued playback logs; the effect's cleanup
+  // function is the flusher's own stop() handle.
   useEffect(() => {
     if (!device) return undefined
     return startLogFlusher(device.deviceToken)
@@ -368,6 +406,8 @@ export default function PlayerPage() {
   }, [])
 
   // ---------------- render ----------------
+  // Pick the view for the current state: pairing -> connecting -> layout or
+  // playlist playback -> "preparing" while downloads finish -> idle.
   let body
   if (!device) {
     body = <PairingScreen code={pairCode} expired={pairState.expired} error={pairState.error} />
@@ -407,6 +447,9 @@ export default function PlayerPage() {
   return <div className={`player-root${cursorHidden ? ' cursor-hidden' : ''}`}>{body}</div>
 }
 
+// Best-effort screenshot for the SCREENSHOT command: draws the currently
+// visible <video> frame or <img> onto a canvas (browsers can't snapshot
+// arbitrary DOM without extra libraries) and POSTs it as base64 JPEG.
 async function captureScreenshot(device, commandId = null) {
   if (!device) return
   try {

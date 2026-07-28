@@ -1,3 +1,8 @@
+// Screens list page: filterable table of every screen with live status,
+// "now playing" and last-seen columns (kept fresh by the portal WebSocket).
+// Filters live in the URL query string so links from the Dashboard tree work
+// and the state survives refresh. Admins can pair new players (6-char code
+// from /player) and bulk-assign selected screens to a group.
 import { useMemo, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router-dom'
@@ -7,6 +12,9 @@ import { Card, PageHeader, StatusDot, Skeleton, EmptyState, Modal, Field, Spinne
 import { offlineFor, timeAgo } from '../lib/format'
 import { useAuth, hasRole } from '../auth/AuthContext'
 
+// Pairing form: the admin types the code shown on the TV plus the screen's
+// metadata (store, city, group, orientation, coordinates); POST /screens/pair
+// claims the code and creates the screen.
 function PairScreenModal({ open, onClose, groups }) {
   const queryClient = useQueryClient()
   const [form, setForm] = useState({
@@ -138,6 +146,7 @@ export default function ScreensPage() {
   const [bulkGroup, setBulkGroup] = useState('')
   const queryClient = useQueryClient()
 
+  // All filters read straight from the URL (single source of truth).
   const filters = {
     search: searchParams.get('search') || '',
     groupId: searchParams.get('groupId') || '',
@@ -156,6 +165,7 @@ export default function ScreensPage() {
   const screens = useQuery({ queryKey: ['screens', 'all'], queryFn: () => api.get('/screens').then((r) => r.data) })
   const groups = useQuery({ queryKey: ['groups'], queryFn: () => api.get('/groups').then((r) => r.data) })
 
+  // Apply search + dropdown filters client-side over the full screen list.
   const filtered = useMemo(() => {
     let list = screens.data || []
     if (filters.search) {
@@ -174,6 +184,7 @@ export default function ScreensPage() {
     return list
   }, [screens.data, filters.search, filters.groupId, filters.state, filters.city, filters.status])
 
+  // Dropdown options derived from the data; cities narrow to the picked state.
   const states = useMemo(() => [...new Set((screens.data || []).map((s) => s.state || 'Unassigned'))].sort(), [screens.data])
   const cities = useMemo(
     () =>
@@ -195,6 +206,7 @@ export default function ScreensPage() {
     },
   })
 
+  // Checkbox selection helpers for the bulk group-assign bar.
   const toggleAll = (checked) => {
     setSelected(checked ? new Set(filtered.map((s) => s.id)) : new Set())
   }

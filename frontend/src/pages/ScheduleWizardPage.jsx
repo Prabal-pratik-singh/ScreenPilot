@@ -1,3 +1,9 @@
+// Three-step schedule wizard (create at /schedules/new, edit at
+// /schedules/:id/edit): 1) pick a playlist or layout, 2) tick target screens
+// in a state > city > store tree, 3) set the IST timing (all-day or window,
+// days of week, optional date range). Publishing first asks the server for
+// overlapping schedules; any conflicts appear in a dialog where the user can
+// cancel or override (deactivate) them before saving.
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -15,6 +21,7 @@ const DAY_LABEL = { MON: 'Mon', TUE: 'Tue', WED: 'Wed', THU: 'Thu', FRI: 'Fri', 
 
 // ---------- step 2: screen tree ----------
 
+// Group the flat screen list into nested Maps: state -> city -> store -> [screens].
 function buildTree(screens) {
   const tree = new Map()
   for (const s of screens) {
@@ -29,6 +36,8 @@ function buildTree(screens) {
   return tree
 }
 
+// One expandable tree level with a tri-state checkbox: checked when every
+// screen underneath is selected, indeterminate when only some are.
 function TreeCheckbox({ label, screens, depth, selected, onToggle, children, defaultOpen = false }) {
   const [open, setOpen] = useState(defaultOpen)
   const ids = screens.map((s) => s.id)
@@ -65,6 +74,7 @@ function TreeCheckbox({ label, screens, depth, selected, onToggle, children, def
   )
 }
 
+// Renders the nested tree with individual screen rows at the deepest level.
 function ScreenTree({ screens, selected, onToggle }) {
   const tree = useMemo(() => buildTree(screens), [screens])
   return (
@@ -103,6 +113,8 @@ function ScreenTree({ screens, selected, onToggle }) {
 
 // ---------- plain language summary ----------
 
+// Turns the form into a readable sentence for the review box, e.g.
+// "Plays 10:00-22:00 IST, Mon-Fri, from 2026-08-01, on 12 screens."
 function summarize(form, screenCount) {
   const time = form.allDay ? 'all day' : `${form.startTime}–${form.endTime} IST`
   const days =
@@ -118,6 +130,7 @@ function summarize(form, screenCount) {
   return `Plays ${time}${days}${dates}, on ${screenCount} screen${screenCount === 1 ? '' : 's'}.`
 }
 
+// True when the picked days form an unbroken run (so "Mon-Fri" reads nicely).
 function contiguous(days) {
   const idx = days.map((d) => DAYS.indexOf(d)).sort((a, b) => a - b)
   for (let i = 1; i < idx.length; i++) if (idx[i] !== idx[i - 1] + 1) return false
@@ -161,6 +174,7 @@ export default function ScheduleWizardPage() {
   })
 
   useEffect(() => {
+    // Edit mode: hydrate the form from the fetched schedule exactly once.
     if (id && existing.data && !loadedForEdit) {
       const s = existing.data
       setForm({
@@ -188,6 +202,8 @@ export default function ScheduleWizardPage() {
     })
   }
 
+  // Assemble the API payload; a blank name is auto-filled from the chosen
+  // content, and overrideIds lists conflicting schedules to deactivate.
   const buildPayload = (overrideIds = null) => ({
     name:
       form.name.trim() ||
@@ -217,6 +233,10 @@ export default function ScheduleWizardPage() {
     onError: (err) => setPublishError(errorMessage(err)),
   })
 
+  // Conflict flow: 1) dry-run the payload against preview-conflicts (edit
+  // mode excludes this schedule itself); 2) no overlaps -> publish straight
+  // away; 3) overlaps -> open the dialog, and "Override & publish" republishes
+  // with the conflicting schedule ids marked for deactivation.
   const checkAndPublish = async () => {
     setPublishError(null)
     try {

@@ -1,3 +1,8 @@
+// Reports page with two tabs sharing one IST date range:
+//  - Proof of play: how many times each creative ran on each screen
+//    (bar chart per day + creative x screen table), for brand reporting.
+//  - Screen uptime: per-day online percentage per screen with red flags.
+// Charts are drawn with Recharts; Excel/PDF exports stream from the API.
 import { useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
@@ -14,11 +19,13 @@ const BAR_COLOR = '#A96D07'
 const LINE_COLOR = '#3D5378'
 const AXIS_TICK = { fill: '#56709F', fontSize: 11 }
 
+// "YYYY-MM-DD" for n days ago, measured in IST (default range = last 7 days).
 function daysAgoISO(n) {
   const d = new Date(Date.now() - n * 86400000)
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Kolkata' }).format(d)
 }
 
+// Custom Recharts tooltip styled like the app's cards.
 function ChartTooltip({ active, payload, label, unit }) {
   if (!active || !payload?.length) return null
   return (
@@ -29,6 +36,8 @@ function ChartTooltip({ active, payload, label, unit }) {
   )
 }
 
+// Fetch an export with the auth header (a plain link couldn't carry the
+// Bearer token), then trigger a browser download via a temporary object URL.
 async function downloadExport(report, format, from, to, extraParams = '') {
   const res = await fetch(
     `${API_BASE}/api/reports/export?report=${report}&format=${format}&from=${from}&to=${to}${extraParams}`,
@@ -46,6 +55,7 @@ async function downloadExport(report, format, from, to, extraParams = '') {
   URL.revokeObjectURL(url)
 }
 
+// Excel/PDF export pair; only one export runs at a time.
 function ExportButtons({ report, from, to, extraParams }) {
   const [busy, setBusy] = useState(null)
   const run = async (format) => {
@@ -70,6 +80,8 @@ function ExportButtons({ report, from, to, extraParams }) {
   )
 }
 
+// Proof-of-play tab: optional screen/creative filters feed both the report
+// query and the export URL; renders stat cards, plays-per-day chart, table.
 function ProofOfPlayTab({ from, to }) {
   const screens = useQuery({ queryKey: ['screens', 'all'], queryFn: () => api.get('/screens').then((r) => r.data) })
   const media = useQuery({ queryKey: ['media'], queryFn: () => api.get('/media').then((r) => r.data) })
@@ -185,6 +197,8 @@ function ProofOfPlayTab({ from, to }) {
   )
 }
 
+// Uptime tab: step line of online screens over time, red-flag chips for
+// screens averaging under 90%, and a per-day percentage grid.
 function UptimeTab({ from, to }) {
   const report = useQuery({
     queryKey: ['reports', 'uptime', from, to],
@@ -277,6 +291,7 @@ function UptimeTab({ from, to }) {
   )
 }
 
+// Page shell: tab switcher + shared from/to date inputs.
 export default function ReportsPage() {
   const [tab, setTab] = useState('pop')
   const [from, setFrom] = useState(daysAgoISO(6))

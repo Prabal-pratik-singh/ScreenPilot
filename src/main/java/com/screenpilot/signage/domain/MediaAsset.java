@@ -6,6 +6,12 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "media_assets" table. A row is one uploaded file (video, image
+ * or PDF) in the media library, plus its metadata (size, dimensions, duration, thumbnail).
+ * The actual bytes live on disk via StorageService; this row only keeps the storage path.
+ * Deletion is "soft": the row stays (flagged deleted) so playlists and reports keep working.
+ */
 @Entity
 @Table(name = "media_assets")
 public class MediaAsset {
@@ -35,6 +41,7 @@ public class MediaAsset {
     @Column(name = "duration_seconds")
     private Double durationSeconds;
 
+    /** Relative key under the upload directory where the file bytes are stored. */
     @Column(name = "storage_path", nullable = false)
     private String storagePath;
 
@@ -54,6 +61,7 @@ public class MediaAsset {
     @Column(name = "uploaded_at", updatable = false)
     private Instant uploadedAt;
 
+    /** Soft-delete flag: hidden from the library but kept for history/reports. */
     @Column(nullable = false)
     private boolean deleted = false;
 

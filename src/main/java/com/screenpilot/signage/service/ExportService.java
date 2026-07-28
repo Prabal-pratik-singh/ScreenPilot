@@ -22,11 +22,14 @@ public class ExportService {
 
     // ------------------------------------------------------------ excel
 
+    /** Proof-of-play report as an .xlsx workbook (one row per creative x screen). */
     public byte[] proofOfPlayXlsx(ReportService.ProofOfPlayReport report, LocalDate from, LocalDate to) throws Exception {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
+            // 1. branded title band + period line
             Sheet sheet = wb.createSheet("Proof of Play");
             writeBrandHeader(wb, sheet, "Proof-of-Play Report", from, to,
                     report.totalPlays() + " total plays · " + Math.round(report.totalSeconds() / 60.0) + " minutes on screen");
+            // 2. column header row, then one data row per report row
             String[] cols = {"Creative", "Type", "Screen", "Play count", "Total seconds", "First played (IST)", "Last played (IST)"};
             writeTableHeader(wb, sheet, 3, cols);
             int r = 4;
@@ -45,11 +48,13 @@ public class ExportService {
         }
     }
 
+    /** Uptime report as an .xlsx workbook: one column per day plus an average column. */
     public byte[] uptimeXlsx(ReportService.UptimeReport report, LocalDate from, LocalDate to) throws Exception {
         try (XSSFWorkbook wb = new XSSFWorkbook()) {
             Sheet sheet = wb.createSheet("Screen Uptime");
             writeBrandHeader(wb, sheet, "Screen Uptime Report", from, to,
                     report.rows().size() + " screens · " + report.redFlags().size() + " under 90%");
+            // 1. build the header dynamically — the day columns depend on the requested range
             List<ReportService.UptimeDay> days = report.rows().isEmpty() ? List.of() : report.rows().get(0).days();
             String[] cols = new String[3 + days.size() + 1];
             cols[0] = "Screen";
@@ -60,6 +65,7 @@ public class ExportService {
             }
             cols[cols.length - 1] = "Average %";
             writeTableHeader(wb, sheet, 3, cols);
+            // 2. one row per screen: identity, daily %, then average
             int r = 4;
             for (ReportService.UptimeRow row : report.rows()) {
                 Row xr = sheet.createRow(r++);
@@ -76,6 +82,7 @@ public class ExportService {
         }
     }
 
+    // dark ink-colored title band (row 0) + period/summary line (row 1)
     private void writeBrandHeader(XSSFWorkbook wb, Sheet sheet, String title, LocalDate from, LocalDate to, String subtitle) {
         Font titleFont = wb.createFont();
         titleFont.setBold(true);
@@ -100,6 +107,7 @@ public class ExportService {
                 + "   ·   Generated " + ZonedDateTime.now(TimeUtil.IST).format(TS) + " IST");
     }
 
+    // bold column headers on a marigold background
     private void writeTableHeader(XSSFWorkbook wb, Sheet sheet, int rowIdx, String[] cols) {
         Font headFont = wb.createFont();
         headFont.setBold(true);
@@ -116,6 +124,7 @@ public class ExportService {
         }
     }
 
+    // auto-fit columns with a little padding, capped so one long value can't blow up the sheet
     private void autosize(Sheet sheet, int cols) {
         for (int i = 0; i < cols; i++) {
             sheet.autoSizeColumn(i);
@@ -129,13 +138,16 @@ public class ExportService {
         return out.toByteArray();
     }
 
+    // formats an Instant as "dd MMM yyyy, HH:mm" in IST (empty string for null)
     private String istString(java.time.Instant instant) {
         return instant == null ? "" : ZonedDateTime.ofInstant(instant, TimeUtil.IST).format(TS);
     }
 
     // ------------------------------------------------------------ pdf
 
+    /** Proof-of-play report as a branded PDF: stat tiles + the full table. */
     public byte[] proofOfPlayPdf(ReportService.ProofOfPlayReport report, LocalDate from, LocalDate to) throws Exception {
+        // 1. build the table body as HTML rows (values are HTML-escaped)
         StringBuilder rows = new StringBuilder();
         for (ReportService.ProofOfPlayRow r : report.rows()) {
             rows.append("<tr>")
@@ -148,6 +160,7 @@ public class ExportService {
                     .append(td(istString(r.lastPlayed())))
                     .append("</tr>");
         }
+        // 2. wrap in the branded shell and render to PDF
         String html = pdfShell("Proof-of-Play Report", from, to,
                 "<div class='stats'><div><b>" + report.totalPlays() + "</b> total plays</div>"
                         + "<div><b>" + Math.round(report.totalSeconds() / 60.0) + "</b> minutes on screen</div>"
@@ -158,7 +171,9 @@ public class ExportService {
         return renderPdf(html);
     }
 
+    /** Uptime report as a branded PDF: red-flag table first, then the daily grid. */
     public byte[] uptimePdf(ReportService.UptimeReport report, LocalDate from, LocalDate to) throws Exception {
+        // 1. optional "red flags" section for screens averaging under 90%
         StringBuilder redFlags = new StringBuilder();
         if (!report.redFlags().isEmpty()) {
             redFlags.append("<h2>Red flags — worst performers (&lt; 90% average)</h2><table><thead><tr><th>Screen</th><th>Store</th><th class='r'>Average online %</th></tr></thead><tbody>");
@@ -168,6 +183,7 @@ public class ExportService {
             }
             redFlags.append("</tbody></table>");
         }
+        // 2. main grid: one row per screen, daily cells color-coded good/warn/bad
         StringBuilder rows = new StringBuilder();
         for (ReportService.UptimeRow r : report.rows()) {
             rows.append("<tr>").append(td(escape(r.screenName()))).append(td(escape(nullSafe(r.storeName()))))
@@ -178,6 +194,7 @@ public class ExportService {
             }
             rows.append("<td class='r'><b>").append(r.avgPct()).append("%</b></td></tr>");
         }
+        // 3. day headers (MM-DD) taken from the first row's day list
         StringBuilder dayHead = new StringBuilder();
         if (!report.rows().isEmpty()) {
             for (ReportService.UptimeDay d : report.rows().get(0).days()) {
@@ -192,6 +209,7 @@ public class ExportService {
         return renderPdf(html);
     }
 
+    // shared HTML/CSS page template (A4 landscape, brand band, table styles); @@TOKENS@@ get replaced
     private String pdfShell(String title, LocalDate from, LocalDate to, String body) {
         String shell = """
                 <html><head><style>
@@ -228,6 +246,7 @@ public class ExportService {
                 .replace("@@BODY@@", body);
     }
 
+    // openhtmltopdf: HTML string in, PDF bytes out
     private byte[] renderPdf(String html) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         PdfRendererBuilder builder = new PdfRendererBuilder();
@@ -250,6 +269,7 @@ public class ExportService {
         return v == null ? "" : v;
     }
 
+    // minimal HTML escaping so names cannot break (or inject into) the PDF markup
     private String escape(String v) {
         return v == null ? "" : v.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }

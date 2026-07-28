@@ -1,3 +1,6 @@
+// Sign-in page for the portal (public route /login). Submits email/password
+// through AuthContext's login(), then redirects back to whatever protected
+// page the user originally tried to open (kept in router location state).
 import { useState } from 'react'
 import { useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { useAuth } from '../auth/AuthContext'
@@ -14,8 +17,10 @@ export default function LoginPage() {
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
 
+  // Already signed in? Skip the form entirely.
   if (user) return <Navigate to={location.state?.from?.pathname || '/'} replace />
 
+  // Form submit handler: attempts login, shows the API error message on failure.
   const submit = async (e) => {
     e.preventDefault()
     setBusy(true)

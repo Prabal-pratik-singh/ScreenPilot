@@ -1,7 +1,12 @@
+// Shared UI building blocks used by every portal page: Card, PageHeader,
+// StatusDot, Badge, Modal, Spinner, Skeleton, EmptyState, Field and
+// ConfirmDialog. All styling is Tailwind utility classes; there is no
+// component library underneath.
 import { useEffect } from 'react'
 import clsx from 'clsx'
 import { X, Inbox } from 'lucide-react'
 
+// White rounded panel — the basic container for page content.
 export function Card({ className, children, ...props }) {
   return (
     <div className={clsx('card', className)} {...props}>
@@ -10,6 +15,7 @@ export function Card({ className, children, ...props }) {
   )
 }
 
+// Page title row with optional subtitle and action buttons on the right.
 export function PageHeader({ title, subtitle, actions }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
@@ -35,6 +41,7 @@ export function StatusDot({ status, className, pulse = false }) {
   )
 }
 
+// Small pill label; `tone` picks the color scheme (success, danger, ...).
 export function Badge({ children, tone = 'ink', className }) {
   const tones = {
     ink: 'bg-ink-50 text-ink-600',
@@ -50,8 +57,10 @@ export function Badge({ children, tone = 'ink', className }) {
   )
 }
 
+// Centered dialog with a dimmed backdrop. Closes on Escape or backdrop click.
 export function Modal({ open, onClose, title, children, wide = false }) {
   useEffect(() => {
+    // Listen for Escape only while the modal is open.
     const onKey = (e) => e.key === 'Escape' && onClose?.()
     if (open) window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
@@ -80,10 +89,12 @@ export function Spinner({ className }) {
   )
 }
 
+// Grey pulsing placeholder shown while data is loading.
 export function Skeleton({ className }) {
   return <div className={clsx('animate-pulse rounded-lg bg-ink-100/70', className)} />
 }
 
+// Friendly "nothing here yet" block with icon, hint text and optional CTA.
 export function EmptyState({ icon: Icon = Inbox, title, hint, action }) {
   return (
     <div className="flex flex-col items-center justify-center py-14 text-center">
@@ -97,6 +108,7 @@ export function EmptyState({ icon: Icon = Inbox, title, hint, action }) {
   )
 }
 
+// Form row: label above the input, optional hint below.
 export function Field({ label, children, hint }) {
   return (
     <div>
@@ -107,6 +119,8 @@ export function Field({ label, children, hint }) {
   )
 }
 
+// Yes/no confirmation modal for destructive actions; `busy` shows a spinner
+// on the confirm button while the mutation is running.
 export function ConfirmDialog({ open, onClose, onConfirm, title, message, confirmLabel = 'Delete', busy = false, children }) {
   return (
     <Modal open={open} onClose={onClose} title={title}>

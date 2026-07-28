@@ -1,3 +1,8 @@
+// Media Library page: grid of uploaded videos/images/PDFs with search,
+// type/tag/folder filters and hover actions (preview, edit, delete).
+// Uploading works two ways — the Upload button or dragging files anywhere
+// onto the page — with per-file progress bars driven by axios
+// onUploadProgress. Deleting warns which playlists still use the asset.
 import { useCallback, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { UploadCloud, Search, Image as ImageIcon, Play, Pencil, Trash2, Eye, FolderOpen, Tag } from 'lucide-react'
@@ -8,6 +13,8 @@ import { fmtBytes, fmtSeconds, timeAgo } from '../lib/format'
 import { mediaThumbSrc, mediaFileSrc, TYPE_ICON, TYPE_LABEL } from '../lib/media'
 import { useAuth, hasRole } from '../auth/AuthContext'
 
+// Thumbnail with graceful fallback: shows the signed thumb image, or a
+// type icon when there is no thumb / it fails to load.
 function Thumb({ asset, className }) {
   const [failed, setFailed] = useState(false)
   const Icon = TYPE_ICON[asset.type] || ImageIcon
@@ -29,6 +36,8 @@ function Thumb({ asset, className }) {
   )
 }
 
+// Full preview in a modal: <video> for videos, <img> for images, <iframe>
+// for PDFs, plus size/dimensions/tags metadata underneath.
 function PreviewModal({ asset, onClose }) {
   return (
     <Modal open={!!asset} onClose={onClose} title={asset?.name || ''} wide>
@@ -64,6 +73,7 @@ function PreviewModal({ asset, onClose }) {
   )
 }
 
+// Rename / move to folder / retag one asset.
 function EditModal({ asset, folders, onClose }) {
   const queryClient = useQueryClient()
   const [name, setName] = useState(asset.name)
@@ -108,6 +118,8 @@ function EditModal({ asset, folders, onClose }) {
   )
 }
 
+// Delete confirmation that first fetches where the asset is used, so the
+// user sees which playlists will lose it before confirming (soft delete).
 function DeleteModal({ asset, onClose }) {
   const queryClient = useQueryClient()
   const [error, setError] = useState(null)
@@ -170,6 +182,8 @@ export default function MediaPage() {
 
   const canEdit = hasRole(user, 'CONTENT_MANAGER')
 
+  // Upload each picked/dropped file as multipart form data; every file gets
+  // its own progress row, and finished rows fade out after a few seconds.
   const uploadFiles = useCallback(
     (files) => {
       ;[...files].forEach((file) => {
@@ -200,6 +214,7 @@ export default function MediaPage() {
     [filters.folder, queryClient],
   )
 
+  // Client-side filtering over the whole library.
   const filtered = (media.data || []).filter((m) => {
     if (filters.search && !m.name.toLowerCase().includes(filters.search.toLowerCase())) return false
     if (filters.type && m.type !== filters.type) return false

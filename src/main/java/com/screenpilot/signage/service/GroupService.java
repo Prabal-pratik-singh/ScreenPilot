@@ -15,6 +15,11 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * CRUD for screen groups (the unit used to restrict what a portal user can
+ * see and manage). Group names are unique, and a group cannot be deleted
+ * while screens still belong to it.
+ */
 @Service
 public class GroupService {
 
@@ -26,6 +31,7 @@ public class GroupService {
         this.screenRepository = screenRepository;
     }
 
+    /** Lists all groups alphabetically, each with its screen count. */
     @Transactional(readOnly = true)
     public List<GroupDtos.GroupResponse> list() {
         Map<UUID, Long> counts = screenRepository.findAll().stream()
@@ -38,6 +44,7 @@ public class GroupService {
                 .toList();
     }
 
+    /** Creates a group; 409 Conflict when the name is already taken. */
     @Transactional
     public GroupDtos.GroupResponse create(GroupDtos.SaveGroupRequest req) {
         groupRepository.findByNameIgnoreCase(req.name().trim()).ifPresent(g -> {
@@ -47,6 +54,7 @@ public class GroupService {
         return new GroupDtos.GroupResponse(group.getId(), group.getName(), group.getDescription(), 0);
     }
 
+    /** Renames/edits a group, guarding against a name clash with a different group. */
     @Transactional
     public GroupDtos.GroupResponse update(UUID id, GroupDtos.SaveGroupRequest req) {
         ScreenGroup group = groupRepository.findById(id).orElseThrow(() -> ApiException.notFound("Group not found"));
@@ -63,6 +71,7 @@ public class GroupService {
         return new GroupDtos.GroupResponse(group.getId(), group.getName(), group.getDescription(), count);
     }
 
+    /** Deletes a group only when no screens are still assigned to it. */
     @Transactional
     public void delete(UUID id) {
         ScreenGroup group = groupRepository.findById(id).orElseThrow(() -> ApiException.notFound("Group not found"));
@@ -74,6 +83,7 @@ public class GroupService {
         groupRepository.delete(group);
     }
 
+    /** All screens currently assigned to the given group. */
     @Transactional(readOnly = true)
     public List<Screen> screensInGroup(UUID groupId) {
         return screenRepository.findByGroupIdIn(List.of(groupId));

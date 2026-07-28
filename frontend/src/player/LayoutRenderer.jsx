@@ -7,6 +7,7 @@ import { Cloud } from 'lucide-react'
  * stored percentage rects. Media zones run their own playlist loop.
  */
 
+// Live digital clock in IST, ticking every second.
 function ZoneClock({ withSeconds = true }) {
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -20,6 +21,7 @@ function ZoneClock({ withSeconds = true }) {
   return <p className="font-bold tabular-nums" style={{ fontSize: 'min(9vh, 100%)' }}>{time}</p>
 }
 
+// Today's date in IST; refreshes every 30s (dates change rarely).
 function ZoneDate() {
   const [now, setNow] = useState(new Date())
   useEffect(() => {
@@ -32,6 +34,7 @@ function ZoneDate() {
   return <p className="font-semibold" style={{ fontSize: 'min(4vh, 60%)' }}>{date}</p>
 }
 
+// WIDGET zone: clock, date or (placeholder) weather, per zone config.
 function WidgetZone({ config }) {
   const widget = config?.widget || 'CLOCK'
   return (
@@ -59,6 +62,8 @@ function WidgetZone({ config }) {
   )
 }
 
+// TICKER zone: scrolling text band. The text is rendered twice back-to-back
+// so the CSS keyframe loop appears continuous with no gap.
 function TickerZone({ config }) {
   const messages = config?.messages?.length ? config.messages : ['Welcome']
   const speed = Math.max(5, Number(config?.speed) || 30) // seconds per loop
@@ -79,6 +84,8 @@ function TickerZone({ config }) {
   )
 }
 
+// LOGO zone: shows a cached logo image from the download manager, falling
+// back to the text wordmark until the blob is available.
 function LogoZone({ config, dm }) {
   const [url, setUrl] = useState(null)
   useEffect(() => {
@@ -106,6 +113,7 @@ function LogoZone({ config, dm }) {
   return <img src={url} alt="logo" className="h-full w-full object-contain p-1" />
 }
 
+// WEB zone: embeds an external page in a sandboxed iframe.
 function WebZone({ config }) {
   const [failed, setFailed] = useState(false)
   useEffect(() => {
@@ -129,6 +137,9 @@ function WebZone({ config }) {
   )
 }
 
+// Lays every zone out with absolute positioning (x/y/w/h are percentages of
+// the screen) and picks the right zone component per type. Only the first
+// MEDIA zone reports "now playing" so the status overlay isn't duplicated.
 export default function LayoutRenderer({ layout, scheduleId, dm, onLog, onNowPlaying }) {
   const zones = layout?.zones || []
   let firstMediaZoneId = null

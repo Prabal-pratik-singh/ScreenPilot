@@ -1,3 +1,7 @@
+// Settings page (ADMIN and up): lists the pluggable content-source
+// integrations reported by the backend (Canva, Google Drive, ...) plus
+// static cards describing storage and timezone behavior. Read-only for now —
+// the Connect buttons stay disabled until server credentials exist.
 import { useQuery } from '@tanstack/react-query'
 import { Plug, Link2, HardDrive, Clock } from 'lucide-react'
 import { api } from '../api/client'

@@ -1,3 +1,9 @@
+// Playlist builder (/playlists/:id): two-panel editor with the media library
+// on the left and the ordered playlist loop on the right. Items are added by
+// drag-and-drop (dnd-kit: draggable library cards, sortable playlist rows,
+// one droppable target) or the + button; rows can be reordered, duplicated,
+// removed and given per-item durations. Edits stay local until "Save
+// changes" PUTs the metadata and the full item list in one go.
 import { useEffect, useMemo, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -22,6 +28,7 @@ import { Card, Skeleton, EmptyState, Modal, Field, Spinner, Badge } from '../com
 import { fmtSeconds } from '../lib/format'
 import { mediaThumbSrc, TYPE_ICON, TYPE_LABEL, effectiveItemDuration } from '../lib/media'
 
+// Small thumbnail with icon fallback, reused by library cards and rows.
 function MiniThumb({ media, className }) {
   const [failed, setFailed] = useState(false)
   const Icon = TYPE_ICON[media?.type] || ImageIcon
@@ -35,6 +42,8 @@ function MiniThumb({ media, className }) {
   return <img src={mediaThumbSrc(media)} alt="" onError={() => setFailed(true)} className={clsx('object-cover rounded-lg bg-ink-800', className)} />
 }
 
+// One draggable asset in the library panel (id "lib:<mediaId>" marks it as
+// coming from the library); the + button adds without dragging.
 function LibraryCard({ media, onAdd }) {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `lib:${media.id}`,
@@ -73,6 +82,8 @@ function LibraryCard({ media, onAdd }) {
   )
 }
 
+// One sortable row of the playlist: drag handle, thumb, type badge, and a
+// duration input (videos always play full length, so theirs is read-only).
 function PlaylistRow({ item, index, onRemove, onDuplicate, onDuration }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.key })
   const style = { transform: CSS.Transform.toString(transform), transition }
@@ -134,6 +145,8 @@ function PlaylistRow({ item, index, onRemove, onDuplicate, onDuration }) {
   )
 }
 
+// Form for non-media items: a live web page URL or a YouTube link, with a
+// title (for reports) and a fixed on-screen duration.
 function ExternalModal({ open, onClose, onAdd }) {
   const [type, setType] = useState('URL')
   const [url, setUrl] = useState('')
@@ -181,6 +194,7 @@ function ExternalModal({ open, onClose, onAdd }) {
   )
 }
 
+// Local React keys for rows that don't have a server id yet.
 let keyCounter = 0
 const newKey = () => `new-${Date.now()}-${keyCounter++}`
 
@@ -201,6 +215,8 @@ export default function PlaylistBuilderPage() {
   const media = useQuery({ queryKey: ['media'], queryFn: () => api.get('/media').then((r) => r.data) })
 
   useEffect(() => {
+    // Copy the fetched playlist into local editing state exactly once;
+    // after that the local copy is the source of truth until saved.
     if (playlist.data && items === null) {
       setItems(
         playlist.data.items.map((it) => ({
@@ -224,6 +240,7 @@ export default function PlaylistBuilderPage() {
     [items],
   )
 
+  // Every local edit goes through here so the dirty flag stays accurate.
   const mutate = (fn) => {
     setItems((prev) => fn(prev))
     setDirty(true)
@@ -243,6 +260,10 @@ export default function PlaylistBuilderPage() {
 
   const onDragStart = (e) => setActiveDrag(e.active)
 
+  // Drop handler for both drag flows:
+  //  - a library card dropped on the loop inserts a new item (at the row it
+  //    landed on, or the end when dropped on empty space),
+  //  - an existing row dropped on another row reorders via arrayMove.
   const onDragEnd = (e) => {
     setActiveDrag(null)
     const { active, over } = e
@@ -269,6 +290,8 @@ export default function PlaylistBuilderPage() {
     }
   }
 
+  // Save = two PUTs: playlist metadata, then the complete item list (the
+  // server replaces all items with this payload).
   const saveMutation = useMutation({
     mutationFn: async () => {
       await api.put(`/playlists/${id}`, { name: meta.name, description: meta.description })

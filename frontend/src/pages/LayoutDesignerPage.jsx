@@ -1,3 +1,9 @@
+// Layout designer (/layouts/:id): a visual canvas where zones (MEDIA,
+// TICKER, WIDGET, LOGO, WEB) are dragged and resized on a 24-column grid.
+// All positions are stored as percentages of the canvas so they scale to any
+// screen resolution. The side panel edits the selected zone's settings
+// (playlist, ticker text/colors, widget type, logo image, web URL) and its
+// stacking order. Changes stay local until "Save layout" PUTs everything.
 import { useEffect, useRef, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -10,6 +16,7 @@ import { api, errorMessage } from '../api/client'
 import { Skeleton, Spinner, Field, Card } from '../components/ui'
 
 const GRID = 100 / 24 // 24-column grid, in %
+// Clamp to 0-100% and snap to the nearest grid line.
 const snap = (v) => Math.max(0, Math.min(100, Math.round(v / GRID) * GRID))
 
 const ZONE_META = {
@@ -23,10 +30,16 @@ const ZONE_META = {
 let zoneCounter = 0
 const newZoneKey = () => `z-${Date.now()}-${zoneCounter++}`
 
+// One zone rectangle on the canvas. Dragging its body moves it; the little
+// corner handle resizes it. Both share startDrag with a different mode.
 function ZoneBox({ zone, selected, onSelect, onChange, canvasRef }) {
   const meta = ZONE_META[zone.type]
   const dragRef = useRef(null)
 
+  // Drag/resize math: record the pointer's start position and the zone's
+  // original rect, then on every pointermove convert the pixel delta into a
+  // percentage of the canvas size, clamp it so the zone stays inside the
+  // canvas, and snap the result to the grid. Listeners detach on pointerup.
   const startDrag = (e, mode) => {
     e.preventDefault()
     e.stopPropagation()
@@ -40,10 +53,12 @@ function ZoneBox({ zone, selected, onSelect, onChange, canvasRef }) {
       const dxPct = ((ev.clientX - startX) / canvas.width) * 100
       const dyPct = ((ev.clientY - startY) / canvas.height) * 100
       if (mode === 'move') {
+        // Moving: shift x/y, keeping the whole box on the canvas.
         const x = snap(Math.min(100 - orig.w, Math.max(0, orig.x + dxPct)))
         const y = snap(Math.min(100 - orig.h, Math.max(0, orig.y + dyPct)))
         onChange(zone.key, { x, y })
       } else {
+        // Resizing: grow/shrink w/h, at least one grid cell, never past 100%.
         const w = snap(Math.min(100 - orig.x, Math.max(GRID, orig.w + dxPct)))
         const h = snap(Math.min(100 - orig.y, Math.max(GRID, orig.h + dyPct)))
         onChange(zone.key, { w, h })
@@ -83,6 +98,8 @@ function ZoneBox({ zone, selected, onSelect, onChange, canvasRef }) {
   )
 }
 
+// Side panel for the selected zone: numeric x/y/w/h inputs plus fields that
+// depend on the zone type; also delete and z-order (forward/back) controls.
 function ZoneProperties({ zone, playlists, mediaImages, onChange, onDelete, onZOrder }) {
   if (!zone) {
     return <p className="text-sm text-ink-400 p-1">Select a zone on the canvas to edit it, or add one from the palette above.</p>
@@ -242,6 +259,7 @@ export default function LayoutDesignerPage() {
   const media = useQuery({ queryKey: ['media'], queryFn: () => api.get('/media').then((r) => r.data) })
 
   useEffect(() => {
+    // Copy the fetched layout into local editing state exactly once.
     if (layout.data && zones === null) {
       setName(layout.data.name)
       setZones(
@@ -257,6 +275,7 @@ export default function LayoutDesignerPage() {
     }
   }, [layout.data, zones])
 
+  // All zone edits funnel through here to keep the dirty flag accurate.
   const mutateZones = (fn) => {
     setZones((prev) => fn(prev))
     setDirty(true)
@@ -268,6 +287,7 @@ export default function LayoutDesignerPage() {
     mutateZones((prev) => prev.filter((z) => z.key !== key))
     setSelectedKey(null)
   }
+  // Stacking order = array order (saved as z below); move the zone one slot.
   const zOrder = (key, dir) =>
     mutateZones((prev) => {
       const idx = prev.findIndex((z) => z.key === key)
@@ -279,6 +299,7 @@ export default function LayoutDesignerPage() {
       return next
     })
 
+  // Drop a new zone onto the canvas with sensible defaults per type.
   const addZone = (type) => {
     const key = newZoneKey()
     const defaults = {
@@ -292,6 +313,7 @@ export default function LayoutDesignerPage() {
     setSelectedKey(key)
   }
 
+  // Save: PUT the whole layout; array index becomes the zone's z value.
   const saveMutation = useMutation({
     mutationFn: () =>
       api

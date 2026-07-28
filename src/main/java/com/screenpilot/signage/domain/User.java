@@ -9,6 +9,11 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
+/**
+ * JPA entity mapped to the "users" table. A row is one portal login account: email,
+ * BCrypt password hash (never the plain password), a {@link Role} that decides
+ * permissions, and — for group-scoped roles — the screen groups the user may manage.
+ */
 @Entity
 @Table(name = "users")
 public class User {
@@ -32,6 +37,7 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
 
+    // Empty set = access to all groups; otherwise the user is limited to these groups.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "user_group_access",
             joinColumns = @JoinColumn(name = "user_id"),

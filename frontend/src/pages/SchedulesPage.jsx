@@ -1,3 +1,7 @@
+// Schedules list page: every schedule as a row card with its content
+// (playlist or layout), timing summary, target screens and status badge
+// (ACTIVE / UPCOMING / PAUSED / EXPIRED). Rows can be paused/resumed and
+// deleted inline; creating/editing happens in the ScheduleWizard page.
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate } from 'react-router-dom'
@@ -9,6 +13,8 @@ import { useAuth, hasRole } from '../auth/AuthContext'
 
 const STATUS_TONE = { ACTIVE: 'success', PAUSED: 'warning', UPCOMING: 'ink', EXPIRED: 'danger' }
 
+// One-line human summary of a schedule's timing, e.g.
+// "09:00–18:00 IST, Mon, Tue, from 2026-01-01". Also used by the wizard.
 export function describeTiming(s) {
   const time = s.allDay ? 'All day' : `${String(s.startTime).slice(0, 5)}–${String(s.endTime).slice(0, 5)} IST`
   const days = s.daysOfWeek?.length

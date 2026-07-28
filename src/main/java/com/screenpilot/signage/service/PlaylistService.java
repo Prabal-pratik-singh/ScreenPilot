@@ -18,6 +18,11 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * CRUD for playlists — ordered lists of items (uploaded MEDIA, external URL,
+ * or YOUTUBE) that screens play in a loop. Saving items publishes a
+ * PlaylistChangedEvent so affected screens get their config re-pushed.
+ */
 @Service
 public class PlaylistService {
 
@@ -38,6 +43,7 @@ public class PlaylistService {
         this.events = events;
     }
 
+    /** All playlists, most recently updated first (items omitted for speed). */
     @Transactional(readOnly = true)
     public List<PlaylistDtos.PlaylistResponse> list() {
         return playlistRepository.findAllByOrderByUpdatedAtDesc().stream()
@@ -45,17 +51,20 @@ public class PlaylistService {
                 .toList();
     }
 
+    /** One playlist including its full item list. */
     @Transactional(readOnly = true)
     public PlaylistDtos.PlaylistResponse get(UUID id) {
         return PlaylistDtos.PlaylistResponse.from(getEntity(id), true);
     }
 
+    /** Loads the entity with items eagerly fetched, or throws 404. */
     @Transactional(readOnly = true)
     public Playlist getEntity(UUID id) {
         return playlistRepository.findWithItemsById(id)
                 .orElseThrow(() -> ApiException.notFound("Playlist not found"));
     }
 
+    /** Creates an empty playlist owned by the current user. */
     @Transactional
     public PlaylistDtos.PlaylistResponse create(PlaylistDtos.SavePlaylistRequest req) {
         User creator = userRepository.findById(CurrentUser.get().id()).orElse(null);
@@ -63,6 +72,7 @@ public class PlaylistService {
         return PlaylistDtos.PlaylistResponse.from(playlist, true);
     }
 
+    /** Renames a playlist / edits its description (items untouched). */
     @Transactional
     public PlaylistDtos.PlaylistResponse update(UUID id, PlaylistDtos.SavePlaylistRequest req) {
         Playlist playlist = getEntity(id);
@@ -72,15 +82,19 @@ public class PlaylistService {
         return PlaylistDtos.PlaylistResponse.from(playlist, true);
     }
 
+    /** Replaces the playlist's items wholesale with the submitted, ordered list. */
     @Transactional
     public PlaylistDtos.PlaylistResponse saveItems(UUID id, PlaylistDtos.SaveItemsRequest req) {
         Playlist playlist = getEntity(id);
+        // 1. full replace: clear existing items and rebuild in request order
         playlist.getItems().clear();
         int position = 0;
         for (PlaylistDtos.SaveItemRequest itemReq : req.items()) {
             PlaylistItem item = new PlaylistItem(playlist, position++);
             item.setItemType(itemReq.itemType());
             switch (itemReq.itemType()) {
+                // 2a. MEDIA items must reference an existing, non-deleted asset;
+                //     images get an explicit duration, videos use their own length
                 case MEDIA -> {
                     if (itemReq.mediaId() == null) {
                         throw ApiException.badRequest("mediaId is required for MEDIA items");
@@ -98,6 +112,7 @@ public class PlaylistService {
                                 : PlaylistDtos.DEFAULT_STATIC_SECONDS);
                     }
                 }
+                // 2b. external items need a URL; title and duration fall back to sensible defaults
                 case URL, YOUTUBE -> {
                     if (itemReq.url() == null || itemReq.url().isBlank()) {
                         throw ApiException.badRequest("url is required for external items");
@@ -113,12 +128,14 @@ public class PlaylistService {
             }
             playlist.getItems().add(item);
         }
+        // 3. persist, then tell listeners so playing screens pick up the new content
         playlist.setUpdatedAt(Instant.now());
         playlistRepository.saveAndFlush(playlist);
         events.publishEvent(new PlaylistChangedEvent(playlist.getId()));
         return PlaylistDtos.PlaylistResponse.from(playlist, true);
     }
 
+    /** Deletes a playlist and its items. */
     @Transactional
     public void delete(UUID id) {
         Playlist playlist = getEntity(id);
