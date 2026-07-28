@@ -40,7 +40,7 @@ function WidgetZone({ config }) {
   return (
     <div
       className="h-full w-full flex flex-col items-center justify-center gap-1 text-white"
-      style={{ background: config?.bgColor || '#16233F', color: config?.textColor || '#FFFFFF' }}
+      style={{ background: config?.bgColor || '#0C0C18', color: config?.textColor || '#FFFFFF' }}
     >
       {widget === 'CLOCK' && (
         <>
@@ -71,7 +71,7 @@ function TickerZone({ config }) {
   return (
     <div
       className="h-full w-full overflow-hidden flex items-center"
-      style={{ background: config?.bgColor || '#F6A821', color: config?.textColor || '#16233F' }}
+      style={{ background: config?.bgColor || '#7C3AED', color: config?.textColor || '#FFFFFF' }}
     >
       <div
         className="whitespace-nowrap font-bold flex"
@@ -106,7 +106,7 @@ function LogoZone({ config, dm }) {
   if (!url) {
     return (
       <div className="h-full w-full flex items-center justify-center">
-        <span className="text-marigold font-bold" style={{ fontSize: 'min(4vh, 55%)' }}>screenPilot</span>
+        <span className="text-primary-400 font-bold" style={{ fontSize: 'min(4vh, 55%)' }}>screenPilot</span>
       </div>
     )
   }
@@ -121,7 +121,7 @@ function WebZone({ config }) {
   }, [config?.url])
   if (!config?.url || failed) {
     return (
-      <div className="h-full w-full bg-ink-900 flex items-center justify-center text-white/40 text-sm">
+      <div className="h-full w-full bg-black/70 flex items-center justify-center text-white/40 text-sm">
         {failed ? 'Page failed to load' : 'No URL configured'}
       </div>
     )
@@ -175,7 +175,7 @@ export default function LayoutRenderer({ layout, scheduleId, dm, onLog, onNowPla
                 />
               </div>
             ) : (
-              <div className="h-full w-full bg-ink-900 flex items-center justify-center text-white/30 text-sm">
+              <div className="h-full w-full bg-black/70 flex items-center justify-center text-white/30 text-sm">
                 No playlist assigned
               </div>
             ))}

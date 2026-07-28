@@ -45,10 +45,10 @@ function ISTClock({ className }) {
 // the portal, plus expiry / connection-error states.
 function PairingScreen({ code, expired, error }) {
   return (
-    <div className="h-full w-full bg-gradient-to-br from-ink-800 via-ink-900 to-[#0A1120] text-white flex flex-col items-center justify-center gap-10 p-8 relative overflow-hidden">
+    <div className="h-full w-full bg-gradient-to-br from-[#100A1E] via-app to-black text-white flex flex-col items-center justify-center gap-10 p-8 relative overflow-hidden">
       {/* drifting glow blobs matching the portal login backdrop */}
-      <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-marigold/15 blur-3xl animate-float" />
-      <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-marigold/10 blur-3xl animate-float [animation-delay:3s]" />
+      <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-primary-600/20 blur-3xl animate-float" />
+      <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-accent/15 blur-3xl animate-float [animation-delay:3s]" />
       <Logo dark size="lg" />
       <div className="text-center relative">
         <p className="text-white/60 text-xl mb-6">Enter this code in the portal to pair this screen</p>
@@ -56,7 +56,7 @@ function PairingScreen({ code, expired, error }) {
           {(code || '······').split('').map((ch, i) => (
             <span
               key={`${code}-${i}`}
-              className="w-20 h-24 rounded-2xl bg-gradient-to-b from-white/15 to-white/5 border border-marigold/30 shadow-[0_8px_30px_rgba(246,168,33,0.15)] flex items-center justify-center text-6xl font-bold text-marigold animate-pop-in"
+              className="w-20 h-24 rounded-2xl bg-gradient-to-b from-white/15 to-white/5 border border-primary-500/40 shadow-[0_8px_30px_rgba(139,92,246,0.25)] flex items-center justify-center text-6xl font-bold text-primary-400 animate-pop-in"
               style={{ animationDelay: `${i * 70}ms` }}
             >
               {ch}
@@ -77,7 +77,7 @@ function PairingScreen({ code, expired, error }) {
 // Shown when the screen is paired but has nothing scheduled to play.
 function IdleScreen({ screenName, note }) {
   return (
-    <div className="h-full w-full bg-ink-800 text-white flex flex-col items-center justify-center gap-12">
+    <div className="h-full w-full bg-gradient-to-br from-[#100A1E] via-app to-black text-white flex flex-col items-center justify-center gap-12">
       <Logo dark size="lg" />
       <ISTClock className="text-center" />
       <div className="text-center">
@@ -97,12 +97,12 @@ function PreparingScreen({ screenName, downloadState }) {
   const pct = Math.round((done / total) * 100)
   const current = entries.find(([, s]) => s.status === 'downloading')
   return (
-    <div className="h-full w-full bg-ink-800 text-white flex flex-col items-center justify-center gap-8">
+    <div className="h-full w-full bg-gradient-to-br from-[#100A1E] via-app to-black text-white flex flex-col items-center justify-center gap-8">
       <Logo dark size="lg" />
       <div className="w-[420px] max-w-[80vw] text-center">
         <p className="text-white/70 text-lg mb-4">Downloading content… {done}/{entries.length}</p>
         <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-          <div className="h-full bg-marigold transition-all" style={{ width: `${pct}%` }} />
+          <div className="h-full bg-grad-primary transition-all" style={{ width: `${pct}%` }} />
         </div>
         {current && <p className="text-white/40 text-sm mt-3">{current[1].progress}% of current file</p>}
       </div>
@@ -479,9 +479,9 @@ async function captureScreenshot(device, commandId = null) {
       const dh = h * scale
       ctx.drawImage(el, (canvas.width - dw) / 2, (canvas.height - dh) / 2, dw, dh)
     } else {
-      ctx.fillStyle = '#16233F'
+      ctx.fillStyle = '#0C0C18'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
-      ctx.fillStyle = '#F6A821'
+      ctx.fillStyle = '#8B5CF6'
       ctx.font = 'bold 40px sans-serif'
       ctx.textAlign = 'center'
       ctx.fillText('Idle / non-capturable content', canvas.width / 2, canvas.height / 2)
