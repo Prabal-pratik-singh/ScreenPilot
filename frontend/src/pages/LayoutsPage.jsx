@@ -24,13 +24,13 @@ const PRESETS = [
 // Tiny 16:9 thumbnail drawing a preset's zones inside the create modal.
 function PresetThumb({ rects, className }) {
   return (
-    <div className={clsx('relative bg-ink-900 rounded-md overflow-hidden', className)} style={{ aspectRatio: '16/9' }}>
+    <div className={clsx('relative bg-black/60 border border-subtle rounded-md overflow-hidden', className)} style={{ aspectRatio: '16/9' }}>
       {rects.map(([x, y, w, h, t], i) => (
         <div
           key={i}
           className={clsx(
-            'absolute border border-ink-900/60 flex items-center justify-center text-[8px] font-bold',
-            t === 'M' ? 'bg-ink-600 text-ink-200' : t === 'T' ? 'bg-marigold text-ink-900' : 'bg-ink-700 text-marigold',
+            'absolute border border-subtle flex items-center justify-center text-[8px] font-bold',
+            t === 'M' ? 'bg-primary-500/30 text-white' : t === 'T' ? 'bg-grad-primary text-white' : 'bg-white/10 text-primary-400',
           )}
           style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, height: `${h}%` }}
         >
@@ -43,16 +43,16 @@ function PresetThumb({ rects, className }) {
 
 // Read-only miniature of a saved layout's zones, shown on each list card.
 function ZonePreview({ layout }) {
-  const colors = { MEDIA: 'bg-ink-600', TICKER: 'bg-marigold', WIDGET: 'bg-ink-700', LOGO: 'bg-ink-500', WEB: 'bg-ink-400' }
+  const colors = { MEDIA: 'bg-primary-500/30', TICKER: 'bg-grad-primary', WIDGET: 'bg-white/10', LOGO: 'bg-white/15', WEB: 'bg-info/30' }
   return (
     <div
-      className="relative bg-ink-900 rounded-lg overflow-hidden w-full"
+      className="relative bg-black/60 border border-subtle rounded-lg overflow-hidden w-full"
       style={{ aspectRatio: layout.orientation === 'PORTRAIT' ? '9/16' : '16/9', maxHeight: layout.orientation === 'PORTRAIT' ? 180 : undefined }}
     >
       {layout.zones.map((z) => (
         <div
           key={z.id}
-          className={clsx('absolute border border-ink-900/70', colors[z.type] || 'bg-ink-600')}
+          className={clsx('absolute border border-subtle', colors[z.type] || 'bg-primary-500/30')}
           style={{ left: `${z.x}%`, top: `${z.y}%`, width: `${z.w}%`, height: `${z.h}%` }}
         />
       ))}
@@ -131,10 +131,10 @@ export default function LayoutsPage() {
               </Link>
               <div className="flex items-center gap-2">
                 <div className="flex-1 min-w-0">
-                  <Link to={`/layouts/${l.id}`} className="font-bold text-ink-800 hover:text-marigold-700 truncate block">
+                  <Link to={`/layouts/${l.id}`} className="font-bold text-txt-primary hover:text-primary-400 truncate block">
                     {l.name}
                   </Link>
-                  <p className="text-xs text-ink-400">
+                  <p className="text-xs text-txt-muted">
                     {l.zoneCount} zone{l.zoneCount === 1 ? '' : 's'} · updated {timeAgo(l.updatedAt)}
                   </p>
                 </div>
@@ -158,11 +158,11 @@ export default function LayoutsPage() {
           <Field label="Orientation">
             <div className="grid grid-cols-2 gap-2 max-w-sm">
               <button type="button" onClick={() => setOrientation('LANDSCAPE')}
-                className={clsx('rounded-lg border-2 p-3 flex items-center gap-2 text-sm font-semibold', orientation === 'LANDSCAPE' ? 'border-marigold bg-marigold-50' : 'border-ink-200 text-ink-500')}>
+                className={clsx('rounded-lg border-2 p-3 flex items-center gap-2 text-sm font-semibold', orientation === 'LANDSCAPE' ? 'border-primary-500/40 bg-primary-500/10 text-txt-primary' : 'border-subtle text-txt-secondary')}>
                 <Monitor size={16} /> Landscape 16:9
               </button>
               <button type="button" onClick={() => setOrientation('PORTRAIT')}
-                className={clsx('rounded-lg border-2 p-3 flex items-center gap-2 text-sm font-semibold', orientation === 'PORTRAIT' ? 'border-marigold bg-marigold-50' : 'border-ink-200 text-ink-500')}>
+                className={clsx('rounded-lg border-2 p-3 flex items-center gap-2 text-sm font-semibold', orientation === 'PORTRAIT' ? 'border-primary-500/40 bg-primary-500/10 text-txt-primary' : 'border-subtle text-txt-secondary')}>
                 <Smartphone size={16} /> Portrait 9:16
               </button>
             </div>
@@ -174,16 +174,16 @@ export default function LayoutsPage() {
                   key={p.key}
                   type="button"
                   onClick={() => setPreset(p.key)}
-                  className={clsx('rounded-xl border-2 p-2.5 text-left', preset === p.key ? 'border-marigold bg-marigold-50' : 'border-ink-100 hover:border-ink-200')}
+                  className={clsx('rounded-xl border-2 p-2.5 text-left', preset === p.key ? 'border-primary-500/40 bg-primary-500/10' : 'border-subtle hover:border-primary-500/30')}
                 >
                   <PresetThumb rects={p.rects} />
-                  <p className="text-xs font-bold text-ink-700 mt-2">{p.label}</p>
-                  <p className="text-[10px] text-ink-400">{p.desc}</p>
+                  <p className="text-xs font-bold text-txt-primary mt-2">{p.label}</p>
+                  <p className="text-[10px] text-txt-muted">{p.desc}</p>
                 </button>
               ))}
             </div>
           </Field>
-          {error && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+          {error && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{error}</div>}
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost" onClick={() => setCreateOpen(false)}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
@@ -201,7 +201,7 @@ export default function LayoutsPage() {
         title="Delete layout"
         message={`Delete "${toDelete?.name}"?`}
       >
-        {deleteError && <div className="mt-3 rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{deleteError}</div>}
+        {deleteError && <div className="mt-3 rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{deleteError}</div>}
       </ConfirmDialog>
     </div>
   )

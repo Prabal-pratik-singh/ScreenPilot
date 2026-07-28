@@ -21,11 +21,11 @@ export default function SettingsPage() {
     <div>
       <PageHeader title="Settings" subtitle="Platform configuration and content-source integrations" />
 
-      <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-        <Plug size={17} className="text-marigold-600" /> Content sources
+      <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+        <Plug size={17} className="text-primary-400" /> Content sources
       </h2>
-      <p className="text-sm text-ink-400 mb-4 max-w-2xl">
-        External platforms plug in through the <code className="bg-ink-50 px-1.5 py-0.5 rounded text-ink-700">ContentSourceProvider</code> interface.
+      <p className="text-sm text-txt-secondary mb-4 max-w-2xl">
+        External platforms plug in through the <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-txt-primary">ContentSourceProvider</code> interface.
         Each becomes available once API credentials are configured on the server — no credentials are bundled with this build.
       </p>
 
@@ -41,10 +41,10 @@ export default function SettingsPage() {
                 <span className="text-3xl">{PROVIDER_ICON[p.id] || '🔌'}</span>
                 {p.enabled ? <Badge tone="success">Connected</Badge> : <Badge>Not connected</Badge>}
               </div>
-              <h3 className="font-bold text-ink-800 mt-3">{p.displayName}</h3>
-              <p className="text-sm text-ink-400 mt-1">{p.description}</p>
+              <h3 className="font-bold text-txt-primary mt-3">{p.displayName}</h3>
+              <p className="text-sm text-txt-secondary mt-1">{p.description}</p>
               <div className="mt-4 flex items-center justify-between gap-3">
-                <p className="text-[11px] text-ink-300 flex-1">{p.requirement}</p>
+                <p className="text-[11px] text-txt-muted flex-1">{p.requirement}</p>
                 <button className="btn-ghost" disabled title={p.requirement}>
                   <Link2 size={14} /> Connect
                 </button>
@@ -54,21 +54,21 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-        <HardDrive size={17} className="text-marigold-600" /> Platform
+      <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+        <HardDrive size={17} className="text-primary-400" /> Platform
       </h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card className="p-5">
-          <h3 className="font-bold text-ink-800">Storage</h3>
-          <p className="text-sm text-ink-400 mt-1">
-            Media is stored on local disk under <code className="bg-ink-50 px-1.5 py-0.5 rounded text-ink-700">./uploads</code> behind
-            the <code className="bg-ink-50 px-1.5 py-0.5 rounded text-ink-700">StorageService</code> interface, so S3 can be swapped in
+          <h3 className="font-bold text-txt-primary">Storage</h3>
+          <p className="text-sm text-txt-secondary mt-1">
+            Media is stored on local disk under <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-txt-primary">./uploads</code> behind
+            the <code className="bg-white/[0.06] px-1.5 py-0.5 rounded text-txt-primary">StorageService</code> interface, so S3 can be swapped in
             without touching upload, thumbnail or streaming code. Max upload: 500 MB per file.
           </p>
         </Card>
         <Card className="p-5">
-          <h3 className="font-bold text-ink-800 flex items-center gap-2"><Clock size={15} className="text-ink-300" /> Timezone</h3>
-          <p className="text-sm text-ink-400 mt-1">
+          <h3 className="font-bold text-txt-primary flex items-center gap-2"><Clock size={15} className="text-txt-muted" /> Timezone</h3>
+          <p className="text-sm text-txt-secondary mt-1">
             All scheduling runs in <b>IST (Asia/Kolkata)</b>. Timestamps are stored in UTC and converted at the edges —
             server timezone never affects what plays.
           </p>

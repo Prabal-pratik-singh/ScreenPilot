@@ -79,7 +79,6 @@ export function StatusDot({ status, className, pulse = false }) {
 export function Badge({ children, tone = 'ink', className }) {
   const tones = {
     ink: 'bg-white/[0.06] text-txt-secondary',
-    marigold: 'bg-primary-500/15 text-primary-400', // legacy tone name -> brand tint
     primary: 'bg-primary-500/15 text-primary-400',
     success: 'bg-success/15 text-success-400',
     danger: 'bg-danger/15 text-danger',

@@ -16,7 +16,7 @@ const ROLES = [
   { value: 'CONTENT_MANAGER', label: 'Content Manager', hint: 'Media, playlists, layouts, schedules' },
   { value: 'VIEWER', label: 'Viewer', hint: 'Read-only dashboards and reports' },
 ]
-const ROLE_TONE = { SUPER_ADMIN: 'marigold', ADMIN: 'ink', CONTENT_MANAGER: 'success', VIEWER: 'warning' }
+const ROLE_TONE = { SUPER_ADMIN: 'primary', ADMIN: 'ink', CONTENT_MANAGER: 'success', VIEWER: 'warning' }
 
 // Invite/edit form. `existing` = edit mode: email is locked, password only
 // sent when filled in. Group chips toggle which screen groups the user sees
@@ -92,7 +92,7 @@ function UserModal({ open, onClose, existing, groups }) {
           <select className="input" value={form.role} onChange={set('role')}>
             {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
           </select>
-          <p className="text-xs text-ink-300 mt-1">{ROLES.find((r) => r.value === form.role)?.hint}</p>
+          <p className="text-xs text-txt-muted mt-1">{ROLES.find((r) => r.value === form.role)?.hint}</p>
         </Field>
         <Field label="Screen group access" hint="Leave all unchecked for access to every group">
           <div className="flex flex-wrap gap-2">
@@ -103,17 +103,17 @@ function UserModal({ open, onClose, existing, groups }) {
                 onClick={() => toggleGroup(g.id)}
                 className={
                   form.groupIds.has(g.id)
-                    ? 'rounded-full bg-marigold text-ink-900 px-3 py-1 text-xs font-bold'
-                    : 'rounded-full bg-ink-50 text-ink-500 px-3 py-1 text-xs font-semibold hover:bg-ink-100'
+                    ? 'rounded-full bg-grad-primary text-white px-3 py-1 text-xs font-bold'
+                    : 'rounded-full bg-hover border border-subtle text-txt-secondary px-3 py-1 text-xs font-semibold hover:bg-white/10'
                 }
               >
                 {g.name}
               </button>
             ))}
-            {groups.length === 0 && <span className="text-xs text-ink-300">No groups defined yet</span>}
+            {groups.length === 0 && <span className="text-xs text-txt-muted">No groups defined yet</span>}
           </div>
         </Field>
-        {error && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+        {error && <div className="rounded-btn bg-danger/10 border border-danger/30 text-danger text-sm px-3 py-2">{error}</div>}
         <div className="flex justify-end gap-2 pt-1">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={mutation.isPending}>
@@ -161,7 +161,7 @@ export default function UsersPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-ink-400 border-b border-ink-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-txt-secondary border-b border-subtle">
                   <th className="px-4 py-3">User</th>
                   <th className="px-4 py-3">Role</th>
                   <th className="px-4 py-3">Group access</th>
@@ -170,12 +170,12 @@ export default function UsersPage() {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100/60">
+              <tbody className="divide-y divide-subtle">
                 {users.data.map((u) => (
-                  <tr key={u.id} className="hover:bg-ink-50/60">
+                  <tr key={u.id} className="hover:bg-hover">
                     <td className="px-4 py-3">
-                      <p className="font-semibold text-ink-800">{u.fullName}{u.id === me.id && <span className="text-ink-300 font-normal"> (you)</span>}</p>
-                      <p className="text-xs text-ink-400">{u.email}</p>
+                      <p className="font-semibold text-txt-primary">{u.fullName}{u.id === me.id && <span className="text-txt-muted font-normal"> (you)</span>}</p>
+                      <p className="text-xs text-txt-secondary">{u.email}</p>
                     </td>
                     <td className="px-4 py-3">
                       <Badge tone={ROLE_TONE[u.role]}>{ROLES.find((r) => r.value === u.role)?.label || u.role}</Badge>
@@ -186,13 +186,13 @@ export default function UsersPage() {
                           {u.groups.map((g) => <Badge key={g.id}>{g.name}</Badge>)}
                         </div>
                       ) : (
-                        <span className="text-xs text-ink-400">All groups</span>
+                        <span className="text-xs text-txt-secondary">All groups</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {u.active ? <Badge tone="success">Active</Badge> : <Badge tone="danger">Deactivated</Badge>}
                     </td>
-                    <td className="px-4 py-3 text-ink-400 whitespace-nowrap">{fmtIST(u.createdAt, false)}</td>
+                    <td className="px-4 py-3 text-txt-secondary whitespace-nowrap">{fmtIST(u.createdAt, false)}</td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-2">
                         <button className="btn-ghost !px-2.5 !py-1.5" onClick={() => setModal(u)} title="Edit">

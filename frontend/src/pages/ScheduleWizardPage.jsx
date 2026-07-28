@@ -47,9 +47,9 @@ function TreeCheckbox({ label, screens, depth, selected, onToggle, children, def
   const online = screens.filter((s) => s.status === 'ONLINE').length
   return (
     <div>
-      <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-ink-50" style={{ marginLeft: depth * 20 }}>
+      <div className="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-hover" style={{ marginLeft: depth * 20 }}>
         {children ? (
-          <button type="button" className="text-ink-300" onClick={() => setOpen(!open)}>
+          <button type="button" className="text-txt-muted" onClick={() => setOpen(!open)}>
             {open ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
           </button>
         ) : (
@@ -61,11 +61,11 @@ function TreeCheckbox({ label, screens, depth, selected, onToggle, children, def
           ref={(el) => el && (el.indeterminate = some)}
           onChange={() => onToggle(ids, !all)}
         />
-        <span className="text-sm font-semibold text-ink-700 flex-1 cursor-pointer" onClick={() => onToggle(ids, !all)}>
+        <span className="text-sm font-semibold text-txt-primary flex-1 cursor-pointer" onClick={() => onToggle(ids, !all)}>
           {label}
         </span>
-        <span className="text-[11px] text-ink-400">{selCount}/{ids.length} selected</span>
-        <span className="flex items-center gap-1 text-[11px] text-success-700 font-semibold">
+        <span className="text-[11px] text-txt-muted">{selCount}/{ids.length} selected</span>
+        <span className="flex items-center gap-1 text-[11px] text-success-400 font-semibold">
           <StatusDot status="ONLINE" className="h-1.5 w-1.5" />{online}
         </span>
       </div>
@@ -90,11 +90,11 @@ function ScreenTree({ screens, selected, onToggle }) {
                   {[...stores.entries()].map(([store, storeScreens]) => (
                     <TreeCheckbox key={store} label={store} screens={storeScreens} depth={2} selected={selected} onToggle={onToggle}>
                       {storeScreens.map((s) => (
-                        <div key={s.id} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-ink-50" style={{ marginLeft: 80 }}>
+                        <div key={s.id} className="flex items-center gap-2 py-1 px-2 rounded-lg hover:bg-hover" style={{ marginLeft: 80 }}>
                           <span className="w-[14px]" />
                           <input type="checkbox" checked={selected.has(s.id)} onChange={() => onToggle([s.id], !selected.has(s.id))} />
                           <StatusDot status={s.status} className="h-2 w-2" />
-                          <span className="text-sm text-ink-600 cursor-pointer" onClick={() => onToggle([s.id], !selected.has(s.id))}>
+                          <span className="text-sm text-txt-secondary cursor-pointer" onClick={() => onToggle([s.id], !selected.has(s.id))}>
                             {s.name}
                           </span>
                         </div>
@@ -259,11 +259,11 @@ export default function ScheduleWizardPage() {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <Link to="/schedules" className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-700 mb-3">
+      <Link to="/schedules" className="flex items-center gap-1.5 text-sm text-txt-muted hover:text-txt-primary mb-3">
         <ArrowLeft size={15} /> Schedules
       </Link>
-      <h1 className="text-2xl font-bold text-ink-800 mb-1">{id ? 'Edit schedule' : 'New schedule'}</h1>
-      <p className="text-sm text-ink-400 mb-6">Publish content to screens — pushed live over WebSocket.</p>
+      <h1 className="text-2xl font-bold text-txt-primary mb-1">{id ? 'Edit schedule' : 'New schedule'}</h1>
+      <p className="text-sm text-txt-secondary mb-6">Publish content to screens — pushed live over WebSocket.</p>
 
       <div className="flex items-center gap-2 mb-6">
         {steps.map((label, i) => (
@@ -273,12 +273,12 @@ export default function ScheduleWizardPage() {
               onClick={() => i < step && setStep(i)}
               className={clsx(
                 'flex items-center gap-2 rounded-full px-4 py-1.5 text-sm font-bold',
-                i === step ? 'bg-ink-800 text-white' : i < step ? 'bg-success-100 text-success-700' : 'bg-ink-50 text-ink-400',
+                i === step ? 'bg-grad-primary text-white shadow-glow-primary' : i < step ? 'bg-success/15 text-success-400' : 'bg-hover text-txt-muted',
               )}
             >
               {i < step ? <Check size={14} /> : <span>{i + 1}</span>} {label}
             </button>
-            {i < steps.length - 1 && <div className="w-6 h-px bg-ink-200" />}
+            {i < steps.length - 1 && <div className="w-6 h-px bg-white/10" />}
           </div>
         ))}
       </div>
@@ -297,12 +297,12 @@ export default function ScheduleWizardPage() {
                 onClick={() => setForm((f) => ({ ...f, contentType: key }))}
                 className={clsx(
                   'rounded-xl border-2 p-4 text-left',
-                  form.contentType === key ? 'border-marigold bg-marigold-50' : 'border-ink-100 hover:border-ink-200',
+                  form.contentType === key ? 'border-primary-500/50 bg-primary-500/10' : 'border-subtle hover:border-primary-500/30',
                 )}
               >
-                <Icon size={20} className={form.contentType === key ? 'text-marigold-700' : 'text-ink-400'} />
-                <p className="font-bold text-ink-800 mt-2">{label}</p>
-                <p className="text-xs text-ink-400">{hint}</p>
+                <Icon size={20} className={form.contentType === key ? 'text-primary-400' : 'text-txt-muted'} />
+                <p className="font-bold text-txt-primary mt-2">{label}</p>
+                <p className="text-xs text-txt-muted">{hint}</p>
               </button>
             ))}
           </div>
@@ -319,17 +319,17 @@ export default function ScheduleWizardPage() {
                     onClick={() => setForm((f) => ({ ...f, playlistId: p.id }))}
                     className={clsx(
                       'rounded-xl border-2 p-3.5 text-left flex items-center gap-3',
-                      form.playlistId === p.id ? 'border-marigold bg-marigold-50' : 'border-ink-100 hover:border-ink-200',
+                      form.playlistId === p.id ? 'border-primary-500/50 bg-primary-500/10' : 'border-subtle hover:border-primary-500/30',
                     )}
                   >
-                    <div className="rounded-lg bg-ink-800 text-marigold p-2"><ListVideo size={16} /></div>
+                    <div className="rounded-lg bg-card-inner text-primary-400 p-2"><ListVideo size={16} /></div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-ink-800 truncate">{p.name}</p>
-                      <p className="text-xs text-ink-400 flex items-center gap-1">
+                      <p className="font-semibold text-txt-primary truncate">{p.name}</p>
+                      <p className="text-xs text-txt-muted flex items-center gap-1">
                         {p.itemCount} items · <Clock size={11} /> {fmtSeconds(p.totalDurationSeconds)} loop
                       </p>
                     </div>
-                    {form.playlistId === p.id && <Check size={17} className="text-marigold-700" />}
+                    {form.playlistId === p.id && <Check size={17} className="text-primary-400" />}
                   </button>
                 ))}
               </div>
@@ -345,15 +345,15 @@ export default function ScheduleWizardPage() {
                   onClick={() => setForm((f) => ({ ...f, layoutId: l.id }))}
                   className={clsx(
                     'rounded-xl border-2 p-3.5 text-left flex items-center gap-3',
-                    form.layoutId === l.id ? 'border-marigold bg-marigold-50' : 'border-ink-100 hover:border-ink-200',
+                    form.layoutId === l.id ? 'border-primary-500/50 bg-primary-500/10' : 'border-subtle hover:border-primary-500/30',
                   )}
                 >
-                  <div className="rounded-lg bg-marigold-100 text-marigold-800 p-2"><LayoutPanelTop size={16} /></div>
+                  <div className="rounded-lg bg-primary-500/10 text-primary-400 p-2"><LayoutPanelTop size={16} /></div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-ink-800 truncate">{l.name}</p>
-                    <p className="text-xs text-ink-400">{l.zoneCount ?? l.zones?.length ?? 0} zones · {l.orientation === 'PORTRAIT' ? '9:16' : '16:9'}</p>
+                    <p className="font-semibold text-txt-primary truncate">{l.name}</p>
+                    <p className="text-xs text-txt-muted">{l.zoneCount ?? l.zones?.length ?? 0} zones · {l.orientation === 'PORTRAIT' ? '9:16' : '16:9'}</p>
                   </div>
-                  {form.layoutId === l.id && <Check size={17} className="text-marigold-700" />}
+                  {form.layoutId === l.id && <Check size={17} className="text-primary-400" />}
                 </button>
               ))}
             </div>
@@ -367,8 +367,8 @@ export default function ScheduleWizardPage() {
       {step === 1 && (
         <Card className="p-6">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-ink-500">Select screens by state, city or store — or tick them individually.</p>
-            <Badge tone="marigold">{selected.size} selected</Badge>
+            <p className="text-sm text-txt-secondary">Select screens by state, city or store — or tick them individually.</p>
+            <Badge tone="primary">{selected.size} selected</Badge>
           </div>
           {screens.isLoading ? (
             <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-9" />)}</div>
@@ -397,18 +397,18 @@ export default function ScheduleWizardPage() {
             <button
               type="button"
               onClick={() => setForm((f) => ({ ...f, allDay: true }))}
-              className={clsx('rounded-xl border-2 p-4 text-left', form.allDay ? 'border-marigold bg-marigold-50' : 'border-ink-100')}
+              className={clsx('rounded-xl border-2 p-4 text-left', form.allDay ? 'border-primary-500/50 bg-primary-500/10' : 'border-subtle')}
             >
-              <p className="font-bold text-ink-800">All day</p>
-              <p className="text-xs text-ink-400">Base loop, 24 hours</p>
+              <p className="font-bold text-txt-primary">All day</p>
+              <p className="text-xs text-txt-muted">Base loop, 24 hours</p>
             </button>
             <button
               type="button"
               onClick={() => setForm((f) => ({ ...f, allDay: false }))}
-              className={clsx('rounded-xl border-2 p-4 text-left', !form.allDay ? 'border-marigold bg-marigold-50' : 'border-ink-100')}
+              className={clsx('rounded-xl border-2 p-4 text-left', !form.allDay ? 'border-primary-500/50 bg-primary-500/10' : 'border-subtle')}
             >
-              <p className="font-bold text-ink-800">Time window</p>
-              <p className="text-xs text-ink-400">Beats all-day during its hours</p>
+              <p className="font-bold text-txt-primary">Time window</p>
+              <p className="text-xs text-txt-muted">Beats all-day during its hours</p>
             </button>
           </div>
 
@@ -418,7 +418,7 @@ export default function ScheduleWizardPage() {
                 <label className="label">Start (IST)</label>
                 <input type="time" className="input" value={form.startTime} onChange={(e) => setForm((f) => ({ ...f, startTime: e.target.value }))} />
               </div>
-              <span className="text-ink-300 mt-5">→</span>
+              <span className="text-txt-muted mt-5">→</span>
               <div>
                 <label className="label">End (IST)</label>
                 <input type="time" className="input" value={form.endTime} onChange={(e) => setForm((f) => ({ ...f, endTime: e.target.value }))} />
@@ -427,7 +427,7 @@ export default function ScheduleWizardPage() {
           )}
 
           <div>
-            <label className="label">Days of week <span className="text-ink-300 normal-case">(none = every day)</span></label>
+            <label className="label">Days of week <span className="text-txt-muted normal-case">(none = every day)</span></label>
             <div className="flex gap-1.5">
               {DAYS.map((d) => (
                 <button
@@ -438,7 +438,7 @@ export default function ScheduleWizardPage() {
                   }
                   className={clsx(
                     'w-12 rounded-lg py-2 text-xs font-bold',
-                    form.days.includes(d) ? 'bg-ink-800 text-marigold' : 'bg-ink-50 text-ink-400 hover:bg-ink-100',
+                    form.days.includes(d) ? 'bg-grad-primary text-white' : 'bg-hover text-txt-secondary hover:bg-white/[0.07]',
                   )}
                 >
                   {DAY_LABEL[d]}
@@ -449,20 +449,20 @@ export default function ScheduleWizardPage() {
 
           <div className="flex items-center gap-3">
             <div>
-              <label className="label">From date <span className="text-ink-300 normal-case">(optional)</span></label>
+              <label className="label">From date <span className="text-txt-muted normal-case">(optional)</span></label>
               <input type="date" className="input" value={form.dateFrom} onChange={(e) => setForm((f) => ({ ...f, dateFrom: e.target.value }))} />
             </div>
             <div>
-              <label className="label">To date <span className="text-ink-300 normal-case">(optional)</span></label>
+              <label className="label">To date <span className="text-txt-muted normal-case">(optional)</span></label>
               <input type="date" className="input" value={form.dateTo} onChange={(e) => setForm((f) => ({ ...f, dateTo: e.target.value }))} />
             </div>
           </div>
 
-          <div className="rounded-xl bg-ink-800 text-white p-4 flex items-start gap-3">
-            <CalendarClock size={18} className="text-marigold mt-0.5" />
+          <div className="card-inner text-txt-primary p-4 flex items-start gap-3">
+            <CalendarClock size={18} className="text-primary-400 mt-0.5" />
             <p className="text-sm">{summarize(form, selected.size)}</p>
           </div>
-          {publishError && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{publishError}</div>}
+          {publishError && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{publishError}</div>}
         </Card>
       )}
 
@@ -484,7 +484,7 @@ export default function ScheduleWizardPage() {
 
       {/* ------- conflict dialog ------- */}
       <Modal open={!!conflicts} onClose={() => setConflicts(null)} title="Overlapping schedules found" wide>
-        <div className="flex items-start gap-3 rounded-xl bg-warning-100 text-warning-700 p-3.5 mb-4">
+        <div className="flex items-start gap-3 rounded-btn bg-warning/10 border border-warning/30 text-warning p-3.5 mb-4">
           <AlertTriangle size={18} className="mt-0.5 shrink-0" />
           <p className="text-sm">
             These schedules overlap with the one you're publishing, on the same screens and in the same time window.
@@ -493,10 +493,10 @@ export default function ScheduleWizardPage() {
         </div>
         <div className="space-y-3 max-h-72 overflow-y-auto">
           {(conflicts || []).map((c) => (
-            <div key={c.scheduleId} className="rounded-xl border border-ink-100 p-3.5">
-              <p className="font-bold text-ink-800">{c.scheduleName}</p>
-              <p className="text-xs text-ink-400">{c.window}</p>
-              <p className="text-xs text-ink-500 mt-1.5">
+            <div key={c.scheduleId} className="rounded-xl border border-subtle p-3.5">
+              <p className="font-bold text-txt-primary">{c.scheduleName}</p>
+              <p className="text-xs text-txt-muted">{c.window}</p>
+              <p className="text-xs text-txt-secondary mt-1.5">
                 Shared screens: {c.screens.map((s) => s.name).join(', ')}
               </p>
             </div>

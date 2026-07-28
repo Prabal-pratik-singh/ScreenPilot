@@ -20,11 +20,11 @@ const GRID = 100 / 24 // 24-column grid, in %
 const snap = (v) => Math.max(0, Math.min(100, Math.round(v / GRID) * GRID))
 
 const ZONE_META = {
-  MEDIA: { label: 'Media', icon: ListVideo, color: 'bg-ink-600/90 text-white' },
-  TICKER: { label: 'Ticker', icon: Type, color: 'bg-marigold/95 text-ink-900' },
-  WIDGET: { label: 'Widget', icon: Clock3, color: 'bg-ink-700/95 text-marigold' },
-  LOGO: { label: 'Logo', icon: ImagePlus, color: 'bg-ink-500/90 text-white' },
-  WEB: { label: 'Web', icon: Globe, color: 'bg-ink-400/90 text-white' },
+  MEDIA: { label: 'Media', icon: ListVideo, color: 'bg-primary-600/60 text-white' },
+  TICKER: { label: 'Ticker', icon: Type, color: 'bg-grad-primary text-white' },
+  WIDGET: { label: 'Widget', icon: Clock3, color: 'bg-[#1A1530]/95 text-primary-400' },
+  LOGO: { label: 'Logo', icon: ImagePlus, color: 'bg-white/15 text-txt-primary' },
+  WEB: { label: 'Web', icon: Globe, color: 'bg-info/25 text-info' },
 }
 
 let zoneCounter = 0
@@ -79,7 +79,7 @@ function ZoneBox({ zone, selected, onSelect, onChange, canvasRef }) {
       className={clsx(
         'absolute flex flex-col items-center justify-center cursor-move select-none overflow-hidden',
         meta.color,
-        selected ? 'ring-4 ring-marigold z-20' : 'ring-1 ring-black/30',
+        selected ? 'ring-4 ring-primary-500 z-20' : 'ring-1 ring-black/30',
       )}
       style={{ left: `${zone.x}%`, top: `${zone.y}%`, width: `${zone.w}%`, height: `${zone.h}%` }}
     >
@@ -102,13 +102,13 @@ function ZoneBox({ zone, selected, onSelect, onChange, canvasRef }) {
 // depend on the zone type; also delete and z-order (forward/back) controls.
 function ZoneProperties({ zone, playlists, mediaImages, onChange, onDelete, onZOrder }) {
   if (!zone) {
-    return <p className="text-sm text-ink-400 p-1">Select a zone on the canvas to edit it, or add one from the palette above.</p>
+    return <p className="text-sm text-txt-muted p-1">Select a zone on the canvas to edit it, or add one from the palette above.</p>
   }
   const setConfig = (patch) => onChange(zone.key, { config: { ...zone.config, ...patch } })
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="font-bold text-ink-800 flex items-center gap-2">
+        <p className="font-bold text-txt-primary flex items-center gap-2">
           {ZONE_META[zone.type].label} zone
         </p>
         <div className="flex gap-1">
@@ -170,11 +170,11 @@ function ZoneProperties({ zone, playlists, mediaImages, onChange, onDelete, onZO
           </Field>
           <div className="grid grid-cols-2 gap-3">
             <Field label="Background">
-              <input type="color" className="h-9 w-full rounded-lg border border-ink-200" value={zone.config?.bgColor || '#F6A821'}
+              <input type="color" className="h-9 w-full rounded-lg border border-subtle" value={zone.config?.bgColor || '#7C3AED'}
                 onChange={(e) => setConfig({ bgColor: e.target.value })} />
             </Field>
             <Field label="Text">
-              <input type="color" className="h-9 w-full rounded-lg border border-ink-200" value={zone.config?.textColor || '#16233F'}
+              <input type="color" className="h-9 w-full rounded-lg border border-subtle" value={zone.config?.textColor || '#FFFFFF'}
                 onChange={(e) => setConfig({ textColor: e.target.value })} />
             </Field>
           </div>
@@ -197,11 +197,11 @@ function ZoneProperties({ zone, playlists, mediaImages, onChange, onDelete, onZO
           )}
           <div className="grid grid-cols-2 gap-3">
             <Field label="Background">
-              <input type="color" className="h-9 w-full rounded-lg border border-ink-200" value={zone.config?.bgColor || '#16233F'}
+              <input type="color" className="h-9 w-full rounded-lg border border-subtle" value={zone.config?.bgColor || '#0C0C18'}
                 onChange={(e) => setConfig({ bgColor: e.target.value })} />
             </Field>
             <Field label="Text">
-              <input type="color" className="h-9 w-full rounded-lg border border-ink-200" value={zone.config?.textColor || '#FFFFFF'}
+              <input type="color" className="h-9 w-full rounded-lg border border-subtle" value={zone.config?.textColor || '#FFFFFF'}
                 onChange={(e) => setConfig({ textColor: e.target.value })} />
             </Field>
           </div>
@@ -304,8 +304,8 @@ export default function LayoutDesignerPage() {
     const key = newZoneKey()
     const defaults = {
       MEDIA: { x: snap(25), y: snap(25), w: snap(50), h: snap(50) },
-      TICKER: { x: 0, y: snap(87.5), w: 100, h: snap(12.5), config: { messages: ['New ticker message'], speed: 30, bgColor: '#F6A821', textColor: '#16233F' } },
-      WIDGET: { x: snap(75), y: 0, w: snap(25), h: snap(25), config: { widget: 'CLOCK', bgColor: '#16233F', textColor: '#FFFFFF' } },
+      TICKER: { x: 0, y: snap(87.5), w: 100, h: snap(12.5), config: { messages: ['New ticker message'], speed: 30, bgColor: '#7C3AED', textColor: '#FFFFFF' } },
+      WIDGET: { x: snap(75), y: 0, w: snap(25), h: snap(25), config: { widget: 'CLOCK', bgColor: '#0C0C18', textColor: '#FFFFFF' } },
       LOGO: { x: snap(83.33), y: 0, w: snap(16.66), h: snap(16.66), config: {} },
       WEB: { x: snap(25), y: snap(25), w: snap(50), h: snap(50), config: { url: '' } },
     }
@@ -354,17 +354,17 @@ export default function LayoutDesignerPage() {
 
   return (
     <div>
-      <Link to="/layouts" className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-700 mb-3">
+      <Link to="/layouts" className="flex items-center gap-1.5 text-sm text-txt-muted hover:text-txt-primary mb-3">
         <ArrowLeft size={15} /> Layouts
       </Link>
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
         <input
-          className="text-2xl font-bold text-ink-800 bg-transparent border-b-2 border-transparent hover:border-ink-200 focus:border-marigold focus:outline-none flex-1 min-w-[220px]"
+          className="text-2xl font-bold text-txt-primary bg-transparent border-b-2 border-transparent hover:border-subtle focus:border-primary-500 focus:outline-none flex-1 min-w-[220px]"
           value={name}
           onChange={(e) => { setName(e.target.value); setDirty(true) }}
         />
-        <span className="text-xs font-bold text-ink-400 bg-ink-50 rounded-full px-3 py-1">
+        <span className="text-xs font-bold text-txt-muted bg-hover border border-subtle rounded-full px-3 py-1">
           {isPortrait ? 'Portrait 9:16' : 'Landscape 16:9'} · 24-col grid
         </span>
         <button className="btn-primary" disabled={!dirty || saveMutation.isPending} onClick={() => saveMutation.mutate()}>
@@ -372,13 +372,13 @@ export default function LayoutDesignerPage() {
           {savedFlash ? 'Saved ✓' : dirty ? 'Save layout' : 'Saved'}
         </button>
       </div>
-      {saveError && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2 mb-4">{saveError}</div>}
+      {saveError && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2 mb-4">{saveError}</div>}
 
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <span className="text-xs font-bold uppercase tracking-wide text-ink-400 mr-1">Add zone:</span>
+        <span className="text-xs font-bold uppercase tracking-wide text-txt-muted mr-1">Add zone:</span>
         {Object.entries(ZONE_META).map(([type, meta]) => (
           <button key={type} className="btn-ghost !py-1.5" onClick={() => addZone(type)}>
-            <meta.icon size={14} className="text-marigold-600" /> {meta.label}
+            <meta.icon size={14} className="text-primary-400" /> {meta.label}
           </button>
         ))}
       </div>
@@ -388,7 +388,7 @@ export default function LayoutDesignerPage() {
           <div
             ref={canvasRef}
             onPointerDown={() => setSelectedKey(null)}
-            className={clsx('relative bg-ink-900 rounded-xl overflow-hidden mx-auto', isPortrait ? 'max-h-[70vh]' : 'w-full')}
+            className={clsx('relative bg-black/70 rounded-xl overflow-hidden mx-auto', isPortrait ? 'max-h-[70vh]' : 'w-full')}
             style={{
               aspectRatio: isPortrait ? '9/16' : '16/9',
               ...(isPortrait ? { height: '70vh' } : {}),
@@ -408,7 +408,7 @@ export default function LayoutDesignerPage() {
               />
             ))}
             {zones.length === 0 && (
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-ink-500">
+              <div className="absolute inset-0 flex flex-col items-center justify-center text-txt-secondary">
                 <LayoutPanelTop size={40} />
                 <p className="mt-2 text-sm">Add zones from the palette above</p>
               </div>

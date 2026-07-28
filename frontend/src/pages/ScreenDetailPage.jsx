@@ -52,36 +52,36 @@ function ContentPanel({ screen }) {
   return (
     <>
       <Card className="p-5">
-        <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-          <CalendarClock size={17} className="text-marigold-600" /> Active schedules
+        <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+          <CalendarClock size={17} className="text-primary-400" /> Active schedules
         </h2>
         {schedules.length === 0 ? (
-          <p className="text-sm text-ink-400">Nothing scheduled — this screen shows the branded idle screen.</p>
+          <p className="text-sm text-txt-secondary">Nothing scheduled — this screen shows the branded idle screen.</p>
         ) : (
           <div className="space-y-4">
             {schedules.map((s) => (
-              <div key={s.id} className="rounded-xl border border-ink-100 p-4">
+              <div key={s.id} className="card-inner p-4">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-ink-800">{s.name}</p>
-                  <Badge tone={s.allDay ? 'ink' : 'marigold'}>{s.allDay ? 'All day' : 'Timed window'}</Badge>
-                  <span className="text-xs text-ink-400">{describeTiming(s)}</span>
+                  <p className="font-semibold text-txt-primary">{s.name}</p>
+                  <Badge tone={s.allDay ? 'ink' : 'primary'}>{s.allDay ? 'All day' : 'Timed window'}</Badge>
+                  <span className="text-xs text-txt-muted">{describeTiming(s)}</span>
                 </div>
                 {s.playlist && (
                   <ol className="mt-3 space-y-1.5">
                     {s.playlist.items.map((it, i) => (
                       <li key={it.id} className="flex items-center gap-2.5 text-sm">
-                        <span className="w-5 text-right text-xs font-bold text-ink-300">{i + 1}.</span>
-                        <span className="flex-1 truncate text-ink-700">{it.title || it.url}</span>
-                        <span className="text-[11px] uppercase font-bold text-ink-300">
+                        <span className="w-5 text-right text-xs font-bold text-txt-muted">{i + 1}.</span>
+                        <span className="flex-1 truncate text-txt-primary">{it.title || it.url}</span>
+                        <span className="text-[11px] uppercase font-bold text-txt-muted">
                           {it.itemType === 'MEDIA' ? it.media?.type : it.itemType}
                         </span>
-                        <span className="text-xs text-ink-400 w-12 text-right">{Math.round(it.effectiveDurationSeconds)}s</span>
+                        <span className="text-xs text-txt-muted w-12 text-right">{Math.round(it.effectiveDurationSeconds)}s</span>
                       </li>
                     ))}
                   </ol>
                 )}
                 {s.contentType === 'LAYOUT' && (
-                  <p className="text-xs text-ink-400 mt-2">Multi-zone layout{s.layout?.name ? `: ${s.layout.name}` : ''}</p>
+                  <p className="text-xs text-txt-muted mt-2">Multi-zone layout{s.layout?.name ? `: ${s.layout.name}` : ''}</p>
                 )}
               </div>
             ))}
@@ -90,12 +90,12 @@ function ContentPanel({ screen }) {
       </Card>
 
       <Card className="p-5">
-        <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-          <Download size={17} className="text-marigold-600" /> Media downloads on this screen
+        <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+          <Download size={17} className="text-primary-400" /> Media downloads on this screen
         </h2>
         {/* status legend: pending / downloading / downloaded / failed reported by heartbeats */}
         {requiredMedia.length === 0 ? (
-          <p className="text-sm text-ink-400">No media required by the current schedules.</p>
+          <p className="text-sm text-txt-secondary">No media required by the current schedules.</p>
         ) : (
           <div className="space-y-2">
             {requiredMedia.map((m) => {
@@ -106,16 +106,16 @@ function ContentPanel({ screen }) {
                   ? (mediaState?.downloading || []).find((d) => String(d.id) === String(m.id))?.progress
                   : null
               return (
-                <div key={m.id} className="flex items-center gap-3 rounded-lg border border-ink-100/70 px-3 py-2">
-                  <span className="flex-1 truncate text-sm text-ink-700">{m.name}</span>
-                  <span className="text-[11px] uppercase font-bold text-ink-300">{m.type}</span>
-                  {progress != null && <span className="text-xs font-semibold text-warning-700">{progress}%</span>}
+                <div key={m.id} className="flex items-center gap-3 card-inner px-3 py-2">
+                  <span className="flex-1 truncate text-sm text-txt-primary">{m.name}</span>
+                  <span className="text-[11px] uppercase font-bold text-txt-muted">{m.type}</span>
+                  {progress != null && <span className="text-xs font-semibold text-warning">{progress}%</span>}
                   <Badge tone={cfg.tone}>{cfg.label}</Badge>
                 </div>
               )
             })}
             {screen.status !== 'ONLINE' && (
-              <p className="text-xs text-ink-400 mt-1">Screen is offline — statuses are from its last heartbeat.</p>
+              <p className="text-xs text-txt-muted mt-1">Screen is offline — statuses are from its last heartbeat.</p>
             )}
           </div>
         )}
@@ -127,9 +127,9 @@ function ContentPanel({ screen }) {
 // Label/value row used in the Device details card.
 function InfoRow({ label, children }) {
   return (
-    <div className="flex justify-between gap-4 py-2 border-b border-ink-100/60 last:border-0">
-      <span className="text-xs font-semibold uppercase tracking-wide text-ink-400 pt-0.5">{label}</span>
-      <span className="text-sm text-ink-700 text-right">{children}</span>
+    <div className="flex justify-between gap-4 py-2 border-b border-subtle last:border-0">
+      <span className="text-xs font-semibold uppercase tracking-wide text-txt-muted pt-0.5">{label}</span>
+      <span className="text-sm text-txt-primary text-right">{children}</span>
     </div>
   )
 }
@@ -177,56 +177,56 @@ function CommandsPanel({ screen, isAdmin }) {
 
   return (
     <Card className="p-5">
-      <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-        <TerminalSquare size={17} className="text-marigold-600" /> Remote control
+      <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+        <TerminalSquare size={17} className="text-primary-400" /> Remote control
       </h2>
       {isAdmin ? (
         <div className="grid grid-cols-1 gap-2">
           <button className="btn-ghost !justify-start" disabled={send.isPending || screen.status !== 'ONLINE'}
             onClick={() => send.mutate('RELOAD')}>
-            <RefreshCw size={15} className="text-ink-400" /> Reload player
+            <RefreshCw size={15} className="text-txt-muted" /> Reload player
           </button>
           <button className="btn-ghost !justify-start" disabled={send.isPending || screen.status !== 'ONLINE'}
             onClick={() => send.mutate('CLEAR_CACHE')}>
-            <Eraser size={15} className="text-ink-400" /> Clear cache &amp; re-download
+            <Eraser size={15} className="text-txt-muted" /> Clear cache &amp; re-download
           </button>
           <button className="btn-ghost !justify-start" disabled={send.isPending || screen.status !== 'ONLINE'}
             onClick={() => send.mutate('SCREENSHOT')}>
-            <Camera size={15} className="text-ink-400" /> Request screenshot
+            <Camera size={15} className="text-txt-muted" /> Request screenshot
           </button>
           {screen.status !== 'ONLINE' && (
-            <p className="text-xs text-ink-300">Commands need the screen to be online.</p>
+            <p className="text-xs text-txt-muted">Commands need the screen to be online.</p>
           )}
-          {feedback && <p className="text-xs font-semibold text-marigold-700">{feedback}</p>}
+          {feedback && <p className="text-xs font-semibold text-primary-400">{feedback}</p>}
         </div>
       ) : (
-        <p className="text-sm text-ink-400">Admins can reload the player, clear its cache or request a screenshot.</p>
+        <p className="text-sm text-txt-secondary">Admins can reload the player, clear its cache or request a screenshot.</p>
       )}
 
       <div className="mt-4">
-        <p className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">Last screenshot</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">Last screenshot</p>
         {shotAvailable && shotLink.data ? (
           <img
             src={`${API_BASE}${shotLink.data}`}
             alt="Player screenshot"
-            className="rounded-lg border border-ink-100 w-full bg-ink-900"
+            className="rounded-tile border border-subtle w-full bg-card-inner"
             onError={() => setShotAvailable(false)}
           />
         ) : (
-          <p className="text-xs text-ink-300">No screenshot captured yet — request one while the screen is online.</p>
+          <p className="text-xs text-txt-muted">No screenshot captured yet — request one while the screen is online.</p>
         )}
       </div>
 
       {history.data?.length > 0 && (
         <div className="mt-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-ink-400 mb-2">Recent commands</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-txt-muted mb-2">Recent commands</p>
           <ul className="space-y-1.5">
             {history.data.slice(0, 5).map((c) => (
               <li key={c.id} className="flex items-center justify-between text-xs">
-                <span className="text-ink-600 font-medium">{c.command}</span>
+                <span className="text-txt-secondary font-medium">{c.command}</span>
                 <span className="flex items-center gap-2">
                   <Badge tone={cmdBadge[c.status] || 'ink'}>{c.status}</Badge>
-                  <span className="text-ink-300">{timeAgo(c.createdAt)}</span>
+                  <span className="text-txt-muted">{timeAgo(c.createdAt)}</span>
                 </span>
               </li>
             ))}
@@ -304,7 +304,7 @@ function EditScreenModal({ screen, groups, open, onClose }) {
           <Field label="Latitude"><input className="input" type="number" step="any" value={form.latitude} onChange={set('latitude')} /></Field>
           <Field label="Longitude"><input className="input" type="number" step="any" value={form.longitude} onChange={set('longitude')} /></Field>
         </div>
-        {error && <div className="sm:col-span-2 rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+        {error && <div className="sm:col-span-2 rounded-btn bg-danger/10 border border-danger/30 text-danger text-sm px-3 py-2">{error}</div>}
         <div className="sm:col-span-2 flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={mutation.isPending}>
@@ -350,8 +350,8 @@ export default function ScreenDetailPage() {
   if (screen.isError || !screen.data) {
     return (
       <Card className="p-8 text-center">
-        <p className="font-semibold text-ink-700">Screen not found or you don't have access.</p>
-        <Link to="/screens" className="text-marigold-700 font-semibold text-sm mt-2 inline-block">← Back to screens</Link>
+        <p className="font-semibold text-txt-primary">Screen not found or you don't have access.</p>
+        <Link to="/screens" className="text-primary-400 font-semibold text-sm mt-2 inline-block">← Back to screens</Link>
       </Card>
     )
   }
@@ -363,28 +363,28 @@ export default function ScreenDetailPage() {
 
   return (
     <div>
-      <button onClick={() => navigate('/screens')} className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-700 mb-3">
+      <button onClick={() => navigate('/screens')} className="flex items-center gap-1.5 text-sm text-txt-secondary hover:text-txt-primary mb-3">
         <ArrowLeft size={15} /> Screens
       </button>
 
       <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
         <div>
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-bold text-ink-800">{s.name}</h1>
+            <h1 className="text-2xl font-bold text-txt-primary">{s.name}</h1>
             <span className="flex items-center gap-1.5">
               <StatusDot status={s.status} pulse />
               {s.status === 'ONLINE' ? (
-                <span className="text-sm font-bold text-success-700">Online</span>
+                <span className="text-sm font-bold text-success-400">Online</span>
               ) : (
-                <span className="text-sm font-bold text-danger-700">
+                <span className="text-sm font-bold text-danger">
                   Offline {s.lastHeartbeatAt ? `for ${offlineFor(s)}` : '(never seen)'}
                 </span>
               )}
             </span>
           </div>
-          <p className="text-sm text-ink-400 mt-1 flex items-center gap-1.5">
+          <p className="text-sm text-txt-secondary mt-1 flex items-center gap-1.5">
             <MapPin size={13} /> {s.storeName || 'Store not set'} · {s.city || '—'}, {s.state || '—'}
-            {s.group && <Badge tone="marigold" className="ml-2">{s.group.name}</Badge>}
+            {s.group && <Badge tone="primary" className="ml-2">{s.group.name}</Badge>}
           </p>
         </div>
         {isAdmin && (
@@ -402,12 +402,12 @@ export default function ScreenDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-4">
           <Card className="p-5">
-            <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-              <MonitorPlay size={17} className="text-marigold-600" /> Now playing
+            <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+              <MonitorPlay size={17} className="text-primary-400" /> Now playing
             </h2>
             {s.status === 'ONLINE' ? (
               <div className="flex items-center gap-4">
-                <div className="h-20 w-32 rounded-lg bg-ink-800 flex items-center justify-center text-ink-300 text-xs overflow-hidden">
+                <div className="h-20 w-32 rounded-tile bg-card-inner border border-subtle flex items-center justify-center text-txt-muted text-xs overflow-hidden">
                   {s.currentItemThumbUrl ? (
                     <img
                       src={`${API_BASE}${s.currentItemThumbUrl}`}
@@ -420,19 +420,19 @@ export default function ScreenDetailPage() {
                   )}
                 </div>
                 <div>
-                  <p className="font-semibold text-ink-800">{s.currentItemName || 'Idle — nothing scheduled'}</p>
-                  <p className="text-xs text-ink-400 mt-1">Reported live by the player with each heartbeat.</p>
+                  <p className="font-semibold text-txt-primary">{s.currentItemName || 'Idle — nothing scheduled'}</p>
+                  <p className="text-xs text-txt-muted mt-1">Reported live by the player with each heartbeat.</p>
                 </div>
               </div>
             ) : (
-              <p className="text-sm text-ink-400">Screen is offline — nothing is being reported.</p>
+              <p className="text-sm text-txt-secondary">Screen is offline — nothing is being reported.</p>
             )}
           </Card>
 
           <ContentPanel screen={s} />
 
           <Card className="p-5">
-            <h2 className="font-bold text-ink-800 mb-2">Device details</h2>
+            <h2 className="font-bold text-txt-primary mb-2">Device details</h2>
             <InfoRow label="Orientation">{s.orientation === 'PORTRAIT' ? 'Portrait (9:16)' : 'Landscape (16:9)'}</InfoRow>
             <InfoRow label="Resolution">{s.resolution || '—'}</InfoRow>
             <InfoRow label="App version">{s.appVersion || '—'}</InfoRow>
@@ -448,23 +448,23 @@ export default function ScreenDetailPage() {
         <div className="space-y-4">
           <CommandsPanel screen={s} isAdmin={isAdmin} />
           <Card className="p-5">
-            <h2 className="font-bold text-ink-800 mb-3 flex items-center gap-2">
-              <HardDrive size={17} className="text-marigold-600" /> Storage
+            <h2 className="font-bold text-txt-primary mb-3 flex items-center gap-2">
+              <HardDrive size={17} className="text-primary-400" /> Storage
             </h2>
             {storagePct != null ? (
               <>
-                <div className="h-2.5 rounded-full bg-ink-100 overflow-hidden">
+                <div className="h-2.5 rounded-full bg-white/10 overflow-hidden">
                   <div
                     className={storagePct > 90 ? 'h-full bg-danger' : storagePct > 70 ? 'h-full bg-warning' : 'h-full bg-success'}
                     style={{ width: `${storagePct}%` }}
                   />
                 </div>
-                <p className="text-xs text-ink-400 mt-2">
+                <p className="text-xs text-txt-muted mt-2">
                   {s.storageUsedMb?.toFixed(0)} MB of {s.storageTotalMb?.toFixed(0)} MB used
                 </p>
               </>
             ) : (
-              <p className="text-sm text-ink-400">Not reported yet.</p>
+              <p className="text-sm text-txt-secondary">Not reported yet.</p>
             )}
           </Card>
         </div>

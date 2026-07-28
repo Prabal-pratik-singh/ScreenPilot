@@ -14,10 +14,10 @@ import { api, API_BASE, getAccessToken } from '../api/client'
 import { Card, PageHeader, Skeleton, EmptyState, Badge } from '../components/ui'
 import { fmtIST, fmtSeconds } from '../lib/format'
 
-// Single-series marks: contrast-validated on white cards (≥3:1)
-const BAR_COLOR = '#A96D07'
-const LINE_COLOR = '#3D5378'
-const AXIS_TICK = { fill: '#56709F', fontSize: 11 }
+// Single-series marks: contrast-validated on the dark card surfaces (≥3:1)
+const BAR_COLOR = '#A855F7'
+const LINE_COLOR = '#38BDF8'
+const AXIS_TICK = { fill: '#64748B', fontSize: 11 }
 
 // "YYYY-MM-DD" for n days ago, measured in IST (default range = last 7 days).
 function daysAgoISO(n) {
@@ -30,8 +30,8 @@ function ChartTooltip({ active, payload, label, unit }) {
   if (!active || !payload?.length) return null
   return (
     <div className="card px-3 py-2 text-xs">
-      <p className="font-bold text-ink-800">{label}</p>
-      <p className="text-ink-500">{payload[0].value} {unit}</p>
+      <p className="font-bold text-txt-primary">{label}</p>
+      <p className="text-txt-secondary">{payload[0].value} {unit}</p>
     </div>
   )
 }
@@ -71,7 +71,7 @@ function ExportButtons({ report, from, to, extraParams }) {
   return (
     <div className="flex gap-2">
       <button className="btn-ghost" disabled={!!busy} onClick={() => run('xlsx')}>
-        <FileSpreadsheet size={15} className="text-success-700" /> {busy === 'xlsx' ? 'Exporting…' : 'Excel'}
+        <FileSpreadsheet size={15} className="text-success-400" /> {busy === 'xlsx' ? 'Exporting…' : 'Excel'}
       </button>
       <button className="btn-ghost" disabled={!!busy} onClick={() => run('pdf')}>
         <FileText size={15} className="text-danger" /> {busy === 'pdf' ? 'Exporting…' : 'PDF'}
@@ -123,30 +123,30 @@ function ProofOfPlayTab({ from, to }) {
         <>
           <div className="grid grid-cols-3 gap-4">
             <Card className="p-4 text-center">
-              <p className="text-2xl font-bold text-ink-800">{report.data.totalPlays}</p>
-              <p className="text-xs font-medium text-ink-400">Total plays</p>
+              <p className="text-2xl font-bold text-txt-primary">{report.data.totalPlays}</p>
+              <p className="text-xs font-medium text-txt-muted">Total plays</p>
             </Card>
             <Card className="p-4 text-center">
-              <p className="text-2xl font-bold text-ink-800">{fmtSeconds(report.data.totalSeconds)}</p>
-              <p className="text-xs font-medium text-ink-400">Time on screen</p>
+              <p className="text-2xl font-bold text-txt-primary">{fmtSeconds(report.data.totalSeconds)}</p>
+              <p className="text-xs font-medium text-txt-muted">Time on screen</p>
             </Card>
             <Card className="p-4 text-center">
-              <p className="text-2xl font-bold text-ink-800">{report.data.rows.length}</p>
-              <p className="text-xs font-medium text-ink-400">Creative × screen rows</p>
+              <p className="text-2xl font-bold text-txt-primary">{report.data.rows.length}</p>
+              <p className="text-xs font-medium text-txt-muted">Creative × screen rows</p>
             </Card>
           </div>
 
           <Card className="p-4">
-            <h3 className="font-bold text-ink-800 mb-1 px-1">Plays per day</h3>
-            <p className="text-xs text-ink-400 px-1 mb-3">Completed plays across the selected screens, IST days</p>
+            <h3 className="font-bold text-txt-primary mb-1 px-1">Plays per day</h3>
+            <p className="text-xs text-txt-muted px-1 mb-3">Completed plays across the selected screens, IST days</p>
             <div className="h-56">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={report.data.playsPerDay} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#EDE9E0" vertical={false} />
-                  <XAxis dataKey="label" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: '#D5DCEA' }}
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" vertical={false} />
+                  <XAxis dataKey="label" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: 'rgba(148,163,184,0.15)' }}
                     tickFormatter={(v) => v.slice(5)} />
                   <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} />
-                  <Tooltip content={<ChartTooltip unit="plays" />} cursor={{ fill: 'rgba(22,35,63,0.05)' }} />
+                  <Tooltip content={<ChartTooltip unit="plays" />} cursor={{ fill: 'rgba(168,85,247,0.08)' }} />
                   <Bar dataKey="value" fill={BAR_COLOR} radius={[4, 4, 0, 0]} maxBarSize={38} />
                 </BarChart>
               </ResponsiveContainer>
@@ -164,7 +164,7 @@ function ProofOfPlayTab({ from, to }) {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="text-left text-xs uppercase tracking-wide text-ink-400 border-b border-ink-100">
+                    <tr className="text-left text-xs uppercase tracking-wide text-txt-muted border-b border-subtle">
                       <th className="px-4 py-3">Creative</th>
                       <th className="px-4 py-3">Type</th>
                       <th className="px-4 py-3">Screen</th>
@@ -174,16 +174,16 @@ function ProofOfPlayTab({ from, to }) {
                       <th className="px-4 py-3">Last played</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-ink-100/60">
+                  <tbody className="divide-y divide-subtle">
                     {report.data.rows.map((r, i) => (
-                      <tr key={i} className="hover:bg-ink-50/60">
-                        <td className="px-4 py-2.5 font-semibold text-ink-700">{r.creative}</td>
+                      <tr key={i} className="hover:bg-hover">
+                        <td className="px-4 py-2.5 font-semibold text-txt-primary">{r.creative}</td>
                         <td className="px-4 py-2.5"><Badge>{r.itemType || '—'}</Badge></td>
-                        <td className="px-4 py-2.5 text-ink-500">{r.screenName}</td>
-                        <td className="px-4 py-2.5 text-right font-bold text-ink-800">{r.playCount}</td>
-                        <td className="px-4 py-2.5 text-right text-ink-500">{fmtSeconds(r.totalSeconds)}</td>
-                        <td className="px-4 py-2.5 text-ink-400 whitespace-nowrap">{fmtIST(r.firstPlayed)}</td>
-                        <td className="px-4 py-2.5 text-ink-400 whitespace-nowrap">{fmtIST(r.lastPlayed)}</td>
+                        <td className="px-4 py-2.5 text-txt-secondary">{r.screenName}</td>
+                        <td className="px-4 py-2.5 text-right font-bold text-txt-primary">{r.playCount}</td>
+                        <td className="px-4 py-2.5 text-right text-txt-secondary">{fmtSeconds(r.totalSeconds)}</td>
+                        <td className="px-4 py-2.5 text-txt-muted whitespace-nowrap">{fmtIST(r.firstPlayed)}</td>
+                        <td className="px-4 py-2.5 text-txt-muted whitespace-nowrap">{fmtIST(r.lastPlayed)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -217,16 +217,16 @@ function UptimeTab({ from, to }) {
       </div>
 
       <Card className="p-4">
-        <h3 className="font-bold text-ink-800 mb-1 px-1">Online screens over time</h3>
-        <p className="text-xs text-ink-400 px-1 mb-3">Sampled from heartbeat status history</p>
+        <h3 className="font-bold text-txt-primary mb-1 px-1">Online screens over time</h3>
+        <p className="text-xs text-txt-muted px-1 mb-3">Sampled from heartbeat status history</p>
         <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={report.data.onlineOverTime} margin={{ top: 4, right: 8, left: -18, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#EDE9E0" vertical={false} />
-              <XAxis dataKey="label" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: '#D5DCEA' }} minTickGap={40} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.08)" vertical={false} />
+              <XAxis dataKey="label" tick={AXIS_TICK} tickLine={false} axisLine={{ stroke: 'rgba(148,163,184,0.15)' }} minTickGap={40} />
               <YAxis tick={AXIS_TICK} tickLine={false} axisLine={false} allowDecimals={false} />
               <Tooltip content={<ChartTooltip unit="screens online" />} />
-              <Line type="stepAfter" dataKey="value" stroke={LINE_COLOR} strokeWidth={2} dot={false} activeDot={{ r: 4 }} />
+              <Line type="stepAfter" dataKey="value" stroke={LINE_COLOR} strokeWidth={2} dot={false} activeDot={{ r: 4, fill: LINE_COLOR, stroke: '#10101E' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -234,12 +234,12 @@ function UptimeTab({ from, to }) {
 
       {report.data.redFlags.length > 0 && (
         <Card className="p-4 border-l-4 !border-l-danger">
-          <h3 className="font-bold text-ink-800 mb-2 flex items-center gap-2">
+          <h3 className="font-bold text-txt-primary mb-2 flex items-center gap-2">
             <AlertTriangle size={16} className="text-danger" /> Red flags — worst performers (&lt; 90% avg)
           </h3>
           <div className="flex flex-wrap gap-2">
             {report.data.redFlags.map((r) => (
-              <span key={r.screenId} className="rounded-lg bg-danger-100 text-danger-700 px-3 py-1.5 text-xs font-bold">
+              <span key={r.screenId} className="rounded-lg bg-danger/15 text-danger px-3 py-1.5 text-xs font-bold">
                 {r.screenName} — {r.avgPct}%
               </span>
             ))}
@@ -254,7 +254,7 @@ function UptimeTab({ from, to }) {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-ink-400 border-b border-ink-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-txt-muted border-b border-subtle">
                   <th className="px-4 py-3">Screen</th>
                   <th className="px-4 py-3">Store</th>
                   {days.map((d) => (
@@ -263,23 +263,23 @@ function UptimeTab({ from, to }) {
                   <th className="px-4 py-3 text-right">Avg</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100/60">
+              <tbody className="divide-y divide-subtle">
                 {report.data.rows.map((r) => (
-                  <tr key={r.screenId} className="hover:bg-ink-50/60">
-                    <td className="px-4 py-2.5 font-semibold text-ink-700 whitespace-nowrap">{r.screenName}</td>
-                    <td className="px-4 py-2.5 text-ink-400 whitespace-nowrap">{r.storeName || '—'}</td>
+                  <tr key={r.screenId} className="hover:bg-hover">
+                    <td className="px-4 py-2.5 font-semibold text-txt-primary whitespace-nowrap">{r.screenName}</td>
+                    <td className="px-4 py-2.5 text-txt-muted whitespace-nowrap">{r.storeName || '—'}</td>
                     {r.days.map((d) => (
                       <td
                         key={d.date}
                         className={clsx(
                           'px-2 py-2.5 text-right text-xs font-semibold',
-                          d.pct >= 95 ? 'text-success-700' : d.pct >= 80 ? 'text-warning-700' : 'text-danger-700',
+                          d.pct >= 95 ? 'text-success-400' : d.pct >= 80 ? 'text-warning' : 'text-danger',
                         )}
                       >
                         {d.pct}%
                       </td>
                     ))}
-                    <td className="px-4 py-2.5 text-right font-bold text-ink-800">{r.avgPct}%</td>
+                    <td className="px-4 py-2.5 text-right font-bold text-txt-primary">{r.avgPct}%</td>
                   </tr>
                 ))}
               </tbody>
@@ -302,23 +302,23 @@ export default function ReportsPage() {
       <PageHeader title="Reports" subtitle="Proof-of-play for brands, uptime for operations — all in IST" />
 
       <div className="flex flex-wrap items-center gap-3 mb-4">
-        <div className="flex rounded-xl bg-ink-50 p-1">
+        <div className="flex rounded-xl bg-card-inner border border-subtle p-1">
           <button
             onClick={() => setTab('pop')}
-            className={clsx('rounded-lg px-4 py-2 text-sm font-bold', tab === 'pop' ? 'bg-white shadow-card text-ink-800' : 'text-ink-400')}
+            className={clsx('rounded-lg px-4 py-2 text-sm font-bold', tab === 'pop' ? 'bg-grad-primary text-white' : 'text-txt-secondary')}
           >
             Proof of play
           </button>
           <button
             onClick={() => setTab('uptime')}
-            className={clsx('rounded-lg px-4 py-2 text-sm font-bold', tab === 'uptime' ? 'bg-white shadow-card text-ink-800' : 'text-ink-400')}
+            className={clsx('rounded-lg px-4 py-2 text-sm font-bold', tab === 'uptime' ? 'bg-grad-primary text-white' : 'text-txt-secondary')}
           >
             Screen uptime
           </button>
         </div>
         <div className="flex items-center gap-2 ml-auto">
           <input type="date" className="input" value={from} max={to} onChange={(e) => setFrom(e.target.value)} />
-          <span className="text-ink-300">→</span>
+          <span className="text-txt-muted">→</span>
           <input type="date" className="input" value={to} min={from} onChange={(e) => setTo(e.target.value)} />
         </div>
       </div>

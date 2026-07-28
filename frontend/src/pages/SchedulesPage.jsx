@@ -72,8 +72,8 @@ export default function SchedulesPage() {
             onClick={() => setStatusFilter(s)}
             className={
               statusFilter === s
-                ? 'rounded-full bg-ink-800 text-white px-4 py-1.5 text-xs font-bold'
-                : 'rounded-full bg-white border border-ink-200 text-ink-500 px-4 py-1.5 text-xs font-semibold hover:bg-ink-50'
+                ? 'rounded-full bg-grad-primary text-white px-4 py-1.5 text-xs font-bold'
+                : 'rounded-full bg-hover border border-subtle text-txt-secondary px-4 py-1.5 text-xs font-semibold hover:text-txt-primary'
             }
           >
             {s || 'All'}
@@ -100,32 +100,32 @@ export default function SchedulesPage() {
         <div className="space-y-3">
           {list.map((s) => (
             <Card key={s.id} className="p-5 flex flex-wrap items-center gap-4">
-              <div className={`rounded-xl p-3 ${s.contentType === 'PLAYLIST' ? 'bg-ink-800 text-marigold' : 'bg-marigold-100 text-marigold-800'}`}>
+              <div className={`rounded-xl p-3 ${s.contentType === 'PLAYLIST' ? 'bg-card-inner text-primary-400' : 'bg-primary-500/10 text-primary-400'}`}>
                 {s.contentType === 'PLAYLIST' ? <ListVideo size={20} /> : <LayoutPanelTop size={20} />}
               </div>
               <div className="flex-1 min-w-[220px]">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-bold text-ink-800">{s.name}</p>
+                  <p className="font-bold text-txt-primary">{s.name}</p>
                   <Badge tone={STATUS_TONE[s.status] || 'ink'}>{s.status}</Badge>
                 </div>
-                <p className="text-sm text-ink-500 mt-0.5">
+                <p className="text-sm text-txt-secondary mt-0.5">
                   {s.contentType === 'PLAYLIST' ? (
-                    <Link className="text-marigold-700 font-semibold hover:underline" to={`/playlists/${s.playlistId}`}>
+                    <Link className="text-primary-400 font-semibold hover:underline" to={`/playlists/${s.playlistId}`}>
                       {s.playlistName}
                     </Link>
                   ) : (
                     <span className="font-semibold">{s.layoutName || 'Layout'}</span>
                   )}
-                  <span className="text-ink-400"> · {describeTiming(s)}</span>
+                  <span className="text-txt-muted"> · {describeTiming(s)}</span>
                 </p>
-                <p className="text-xs text-ink-400 mt-1 flex items-center gap-1">
+                <p className="text-xs text-txt-muted mt-1 flex items-center gap-1">
                   <MonitorPlay size={12} /> {s.screens.length} screen{s.screens.length === 1 ? '' : 's'}
-                  <span className="text-ink-300">
+                  <span className="text-txt-muted">
                     — {s.screens.slice(0, 3).map((x) => x.name).join(', ')}{s.screens.length > 3 ? '…' : ''}
                   </span>
                 </p>
               </div>
-              <div className="text-right text-xs text-ink-300 hidden md:block">
+              <div className="text-right text-xs text-txt-muted hidden md:block">
                 <p>by {s.createdByName || '—'}</p>
                 <p>{fmtIST(s.createdAt, false)}</p>
               </div>
@@ -136,12 +136,12 @@ export default function SchedulesPage() {
                   </button>
                   {s.status !== 'EXPIRED' &&
                     (s.active ? (
-                      <button className="btn-ghost !p-2.5 text-warning-700" title="Pause"
+                      <button className="btn-ghost !p-2.5 text-warning" title="Pause"
                         onClick={() => pauseMutation.mutate({ id: s.id, action: 'pause' })}>
                         <Pause size={15} />
                       </button>
                     ) : (
-                      <button className="btn-ghost !p-2.5 text-success-700" title="Resume"
+                      <button className="btn-ghost !p-2.5 text-success-400" title="Resume"
                         onClick={() => pauseMutation.mutate({ id: s.id, action: 'resume' })}>
                         <Play size={15} />
                       </button>

@@ -100,7 +100,7 @@ export default function GroupsPage() {
           {groups.data.map((g) => (
             <Card key={g.id} className="p-5 flex flex-col">
               <div className="flex items-start justify-between">
-                <div className="rounded-xl bg-marigold-100 text-marigold-800 p-2.5">
+                <div className="rounded-xl bg-primary-500/15 text-primary-400 p-2.5">
                   <FolderTree size={20} />
                 </div>
                 <div className="flex gap-1">
@@ -112,10 +112,10 @@ export default function GroupsPage() {
                   </button>
                 </div>
               </div>
-              <h3 className="font-bold text-ink-800 mt-3">{g.name}</h3>
-              <p className="text-sm text-ink-400 mt-1 flex-1">{g.description || 'No description'}</p>
-              <p className="text-xs font-semibold text-ink-500 mt-3 flex items-center gap-1.5">
-                <MonitorPlay size={14} className="text-ink-300" /> {g.screenCount} screen{g.screenCount === 1 ? '' : 's'}
+              <h3 className="font-bold text-txt-primary mt-3">{g.name}</h3>
+              <p className="text-sm text-txt-secondary mt-1 flex-1">{g.description || 'No description'}</p>
+              <p className="text-xs font-semibold text-txt-secondary mt-3 flex items-center gap-1.5">
+                <MonitorPlay size={14} className="text-txt-muted" /> {g.screenCount} screen{g.screenCount === 1 ? '' : 's'}
               </p>
             </Card>
           ))}

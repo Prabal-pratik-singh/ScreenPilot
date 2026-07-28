@@ -66,8 +66,8 @@ function PairScreenModal({ open, onClose, groups }) {
 
   return (
     <Modal open={open} onClose={onClose} title="Add screen (pair a player)" wide>
-      <p className="text-sm text-ink-400 -mt-2 mb-4">
-        Open <code className="bg-ink-50 px-1.5 py-0.5 rounded text-ink-700">/player</code> on the device — it shows a
+      <p className="text-sm text-txt-secondary -mt-2 mb-4">
+        Open <code className="bg-white/10 px-1.5 py-0.5 rounded text-txt-primary">/player</code> on the device — it shows a
         6-character pairing code. Enter it below with the screen details.
       </p>
       <form onSubmit={submit} className="space-y-4">
@@ -126,7 +126,7 @@ function PairScreenModal({ open, onClose, groups }) {
             </Field>
           </div>
         </div>
-        {error && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+        {error && <div className="rounded-btn bg-danger/10 border border-danger/30 text-danger text-sm px-3 py-2">{error}</div>}
         <div className="flex justify-end gap-2 pt-2">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={mutation.isPending}>
@@ -238,7 +238,7 @@ export default function ScreensPage() {
       <Card className="p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
             <input
               className="input pl-9"
               placeholder="Search name, store, city…"
@@ -269,10 +269,10 @@ export default function ScreensPage() {
       </Card>
 
       {isAdmin && selected.size > 0 && (
-        <div className="card bg-ink-800 text-white px-4 py-3 mb-4 flex items-center gap-4">
-          <span className="text-sm font-semibold">{selected.size} selected</span>
+        <div className="card border-primary-500/50 bg-primary-500/10 px-4 py-3 mb-4 flex items-center gap-4">
+          <span className="text-sm font-semibold text-txt-primary">{selected.size} selected</span>
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-xs text-ink-200">Assign to group:</span>
+            <span className="text-xs text-txt-secondary">Assign to group:</span>
             <select className="input max-w-[180px] !py-1.5" value={bulkGroup} onChange={(e) => setBulkGroup(e.target.value)}>
               <option value="">— choose —</option>
               {(groups.data || []).map((g) => (
@@ -305,11 +305,12 @@ export default function ScreensPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="text-left text-xs uppercase tracking-wide text-ink-400 border-b border-ink-100">
+                <tr className="text-left text-xs uppercase tracking-wide text-txt-secondary border-b border-subtle">
                   {isAdmin && (
                     <th className="px-4 py-3 w-10">
                       <input
                         type="checkbox"
+                        className="accent-primary-500"
                         checked={selected.size > 0 && selected.size === filtered.length}
                         onChange={(e) => toggleAll(e.target.checked)}
                       />
@@ -323,46 +324,47 @@ export default function ScreensPage() {
                   <th className="px-4 py-3">Last seen</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-ink-100/60">
+              <tbody className="divide-y divide-subtle">
                 {filtered.map((s) => (
-                  <tr key={s.id} className="hover:bg-ink-50/60">
+                  <tr key={s.id} className="hover:bg-hover">
                     {isAdmin && (
                       <td className="px-4 py-3">
                         <input
                           type="checkbox"
+                          className="accent-primary-500"
                           checked={selected.has(s.id)}
                           onChange={(e) => toggleOne(s.id, e.target.checked)}
                         />
                       </td>
                     )}
                     <td className="px-4 py-3">
-                      <Link to={`/screens/${s.id}`} className="font-semibold text-ink-800 hover:text-marigold-700">
+                      <Link to={`/screens/${s.id}`} className="font-semibold text-txt-primary hover:text-primary-400">
                         {s.name}
                       </Link>
-                      <p className="text-xs text-ink-400">{s.storeName}</p>
+                      <p className="text-xs text-txt-muted">{s.storeName}</p>
                     </td>
-                    <td className="px-4 py-3 text-ink-500">
+                    <td className="px-4 py-3 text-txt-secondary">
                       {s.city || '—'}{s.state ? `, ${s.state}` : ''}
                     </td>
                     <td className="px-4 py-3">
-                      {s.group ? <Badge tone="marigold">{s.group.name}</Badge> : <span className="text-ink-300">—</span>}
+                      {s.group ? <Badge tone="primary">{s.group.name}</Badge> : <span className="text-txt-muted">—</span>}
                     </td>
                     <td className="px-4 py-3">
                       <span className="flex items-center gap-2">
                         <StatusDot status={s.status} pulse />
                         {s.status === 'ONLINE' ? (
-                          <span className="font-semibold text-success-700">Online</span>
+                          <span className="font-semibold text-success-400">Online</span>
                         ) : (
-                          <span className="font-semibold text-danger-700">
+                          <span className="font-semibold text-danger">
                             Offline {s.lastHeartbeatAt ? `for ${offlineFor(s)}` : '(never seen)'}
                           </span>
                         )}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-ink-500 max-w-[180px] truncate">
+                    <td className="px-4 py-3 text-txt-secondary max-w-[180px] truncate">
                       {s.status === 'ONLINE' ? (s.currentItemName || 'Idle') : '—'}
                     </td>
-                    <td className="px-4 py-3 text-ink-400 whitespace-nowrap">{timeAgo(s.lastHeartbeatAt)}</td>
+                    <td className="px-4 py-3 text-txt-muted whitespace-nowrap">{timeAgo(s.lastHeartbeatAt)}</td>
                   </tr>
                 ))}
               </tbody>

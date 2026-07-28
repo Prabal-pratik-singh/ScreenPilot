@@ -34,12 +34,12 @@ function MiniThumb({ media, className }) {
   const Icon = TYPE_ICON[media?.type] || ImageIcon
   if (!media?.hasThumb || failed) {
     return (
-      <div className={clsx('flex items-center justify-center bg-ink-800 text-ink-300 rounded-lg', className)}>
+      <div className={clsx('flex items-center justify-center bg-card-inner text-txt-muted rounded-lg', className)}>
         <Icon size={18} />
       </div>
     )
   }
-  return <img src={mediaThumbSrc(media)} alt="" onError={() => setFailed(true)} className={clsx('object-cover rounded-lg bg-ink-800', className)} />
+  return <img src={mediaThumbSrc(media)} alt="" onError={() => setFailed(true)} className={clsx('object-cover rounded-lg bg-card-inner', className)} />
 }
 
 // One draggable asset in the library panel (id "lib:<mediaId>" marks it as
@@ -55,20 +55,20 @@ function LibraryCard({ media, onAdd }) {
       {...attributes}
       {...listeners}
       className={clsx(
-        'flex items-center gap-2.5 rounded-lg border border-ink-100 bg-white p-2 cursor-grab active:cursor-grabbing hover:border-marigold/60',
+        'flex items-center gap-2.5 rounded-lg border border-subtle bg-card-inner p-2 cursor-grab active:cursor-grabbing hover:border-primary-500/50',
         isDragging && 'opacity-40',
       )}
     >
       <MiniThumb media={media} className="h-10 w-16 shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-ink-700 truncate">{media.name}</p>
-        <p className="text-[10px] text-ink-400">
+        <p className="text-xs font-semibold text-txt-primary truncate">{media.name}</p>
+        <p className="text-[10px] text-txt-muted">
           {TYPE_LABEL[media.type]}
           {media.type === 'VIDEO' && media.durationSeconds ? ` · ${fmtSeconds(media.durationSeconds)}` : ''}
         </p>
       </div>
       <button
-        className="rounded-lg bg-marigold/15 text-marigold-700 p-1.5 hover:bg-marigold/30"
+        className="rounded-lg bg-primary-500/15 text-primary-400 p-1.5 hover:bg-primary-500/30"
         title="Add to playlist"
         onClick={(e) => {
           e.stopPropagation()
@@ -93,32 +93,32 @@ function PlaylistRow({ item, index, onRemove, onDuplicate, onDuration }) {
     <div
       ref={setNodeRef}
       style={style}
-      className={clsx('flex items-center gap-2 rounded-xl border border-ink-100 bg-white p-2.5', isDragging && 'opacity-40 shadow-lg')}
+      className={clsx('flex items-center gap-2 rounded-xl border border-subtle bg-card-inner p-2.5', isDragging && 'opacity-40 shadow-lg')}
     >
-      <button {...attributes} {...listeners} className="text-ink-200 hover:text-ink-400 cursor-grab active:cursor-grabbing p-1">
+      <button {...attributes} {...listeners} className="text-txt-muted hover:text-txt-secondary cursor-grab active:cursor-grabbing p-1">
         <GripVertical size={16} />
       </button>
-      <span className="text-xs font-bold text-ink-300 w-5 text-center">{index + 1}</span>
+      <span className="text-xs font-bold text-txt-muted w-5 text-center">{index + 1}</span>
       {item.itemType === 'MEDIA' ? (
         <MiniThumb media={item.media} className="h-11 w-[72px] shrink-0" />
       ) : (
-        <div className="h-11 w-[72px] shrink-0 rounded-lg bg-ink-800 flex items-center justify-center text-marigold">
+        <div className="h-11 w-[72px] shrink-0 rounded-lg bg-card-inner flex items-center justify-center text-primary-400">
           {item.itemType === 'YOUTUBE' ? <Youtube size={18} /> : <Globe size={18} />}
         </div>
       )}
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-semibold text-ink-800 truncate">
+        <p className="text-sm font-semibold text-txt-primary truncate">
           {item.title || item.media?.name || item.url}
         </p>
         <div className="flex items-center gap-2 mt-0.5">
-          <Badge tone={external ? 'warning' : item.media?.type === 'VIDEO' ? 'marigold' : 'ink'} className="!text-[10px] !px-1.5">
+          <Badge tone={external ? 'warning' : item.media?.type === 'VIDEO' ? 'primary' : 'ink'} className="!text-[10px] !px-1.5">
             {external ? (item.itemType === 'YOUTUBE' ? 'YouTube' : 'Live URL') : TYPE_LABEL[item.media?.type]}
           </Badge>
           {item.media?.deleted && <Badge tone="danger" className="!text-[10px] !px-1.5">deleted asset</Badge>}
         </div>
       </div>
-      <div className="flex items-center gap-1 text-xs text-ink-500">
-        <Clock size={13} className="text-ink-300" />
+      <div className="flex items-center gap-1 text-xs text-txt-secondary">
+        <Clock size={13} className="text-txt-muted" />
         {isVideo ? (
           <span className="font-semibold w-16 text-right">{fmtSeconds(item.media?.durationSeconds ?? 30)}</span>
         ) : (
@@ -129,16 +129,16 @@ function PlaylistRow({ item, index, onRemove, onDuplicate, onDuration }) {
               max={3600}
               value={item.durationSeconds ?? (external ? 20 : 10)}
               onChange={(e) => onDuration(item.key, Number(e.target.value))}
-              className="w-16 rounded-lg border border-ink-200 px-2 py-1 text-right text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-marigold/60"
+              className="w-16 rounded-lg border border-subtle bg-card-inner text-txt-primary px-2 py-1 text-right text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary-500/40"
             />
             s
           </span>
         )}
       </div>
-      <button className="p-1.5 text-ink-300 hover:text-ink-600" title="Duplicate" onClick={() => onDuplicate(item.key)}>
+      <button className="p-1.5 text-txt-muted hover:text-txt-primary" title="Duplicate" onClick={() => onDuplicate(item.key)}>
         <Copy size={15} />
       </button>
-      <button className="p-1.5 text-ink-300 hover:text-danger" title="Remove" onClick={() => onRemove(item.key)}>
+      <button className="p-1.5 text-txt-muted hover:text-danger" title="Remove" onClick={() => onRemove(item.key)}>
         <Trash2 size={15} />
       </button>
     </div>
@@ -166,11 +166,11 @@ function ExternalModal({ open, onClose, onAdd }) {
         <Field label="Type">
           <div className="grid grid-cols-2 gap-2">
             <button type="button" onClick={() => setType('URL')}
-              className={clsx('rounded-lg border p-3 flex items-center gap-2 text-sm font-semibold', type === 'URL' ? 'border-marigold bg-marigold-50 text-ink-800' : 'border-ink-200 text-ink-500')}>
+              className={clsx('rounded-lg border p-3 flex items-center gap-2 text-sm font-semibold', type === 'URL' ? 'border-primary-500/50 bg-primary-500/10 text-txt-primary' : 'border-subtle text-txt-secondary')}>
               <Globe size={16} /> Live URL
             </button>
             <button type="button" onClick={() => setType('YOUTUBE')}
-              className={clsx('rounded-lg border p-3 flex items-center gap-2 text-sm font-semibold', type === 'YOUTUBE' ? 'border-marigold bg-marigold-50 text-ink-800' : 'border-ink-200 text-ink-500')}>
+              className={clsx('rounded-lg border p-3 flex items-center gap-2 text-sm font-semibold', type === 'YOUTUBE' ? 'border-primary-500/50 bg-primary-500/10 text-txt-primary' : 'border-subtle text-txt-secondary')}>
               <Youtube size={16} /> YouTube
             </button>
           </div>
@@ -337,29 +337,29 @@ export default function PlaylistBuilderPage() {
 
   return (
     <div>
-      <Link to="/playlists" className="flex items-center gap-1.5 text-sm text-ink-400 hover:text-ink-700 mb-3">
+      <Link to="/playlists" className="flex items-center gap-1.5 text-sm text-txt-muted hover:text-txt-primary mb-3">
         <ArrowLeft size={15} /> Playlists
       </Link>
 
       <div className="flex flex-wrap items-center gap-3 mb-5">
         <div className="flex-1 min-w-[260px]">
           <input
-            className="text-2xl font-bold text-ink-800 bg-transparent border-b-2 border-transparent hover:border-ink-200 focus:border-marigold focus:outline-none w-full"
+            className="text-2xl font-bold text-txt-primary bg-transparent border-b-2 border-transparent hover:border-subtle focus:border-primary-500/50 focus:outline-none w-full"
             value={meta.name}
             onChange={(e) => { setMeta((m) => ({ ...m, name: e.target.value })); setDirty(true) }}
           />
           <input
-            className="text-sm text-ink-400 bg-transparent border-b border-transparent hover:border-ink-200 focus:border-marigold focus:outline-none w-full mt-1"
+            className="text-sm text-txt-secondary bg-transparent border-b border-transparent hover:border-subtle focus:border-primary-500/50 focus:outline-none w-full mt-1"
             placeholder="Add a description…"
             value={meta.description}
             onChange={(e) => { setMeta((m) => ({ ...m, description: e.target.value })); setDirty(true) }}
           />
         </div>
         <div className="flex items-center gap-3">
-          <div className="rounded-xl bg-ink-800 text-white px-4 py-2 text-sm">
-            <span className="text-ink-200 text-xs block leading-none mb-0.5">Total loop</span>
-            <span className="font-bold text-marigold">{fmtSeconds(totalSeconds)}</span>
-            <span className="text-ink-300"> · {items.length} items</span>
+          <div className="card-inner text-txt-primary px-4 py-2 text-sm">
+            <span className="text-txt-muted text-xs block leading-none mb-0.5">Total loop</span>
+            <span className="font-bold text-primary-400">{fmtSeconds(totalSeconds)}</span>
+            <span className="text-txt-muted"> · {items.length} items</span>
           </div>
           <button className="btn-primary" disabled={!dirty || saveMutation.isPending} onClick={() => saveMutation.mutate()}>
             {saveMutation.isPending ? <Spinner className="h-4 w-4" /> : <Save size={16} />}
@@ -367,15 +367,15 @@ export default function PlaylistBuilderPage() {
           </button>
         </div>
       </div>
-      {saveError && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2 mb-4">{saveError}</div>}
+      {saveError && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2 mb-4">{saveError}</div>}
 
       <DndContext sensors={sensors} onDragStart={onDragStart} onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 items-start">
           <Card className="lg:col-span-2 p-4">
-            <h2 className="font-bold text-ink-800 mb-3">Media library</h2>
+            <h2 className="font-bold text-txt-primary mb-3">Media library</h2>
             <div className="flex gap-2 mb-3">
               <div className="relative flex-1">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
                 <input className="input pl-8 !py-1.5 text-sm" placeholder="Search…" value={libSearch} onChange={(e) => setLibSearch(e.target.value)} />
               </div>
               <select className="input max-w-[110px] !py-1.5 text-sm" value={libType} onChange={(e) => setLibType(e.target.value)}>
@@ -386,7 +386,7 @@ export default function PlaylistBuilderPage() {
               </select>
             </div>
             <button className="btn-ghost w-full mb-3 !justify-start" onClick={() => setExternalOpen(true)}>
-              <Globe size={15} className="text-marigold-600" /> Add live URL / YouTube…
+              <Globe size={15} className="text-primary-400" /> Add live URL / YouTube…
             </button>
             {media.isLoading ? (
               <div className="space-y-2">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
@@ -401,8 +401,8 @@ export default function PlaylistBuilderPage() {
             )}
           </Card>
 
-          <Card className={clsx('lg:col-span-3 p-4 transition-colors', isOver && 'ring-2 ring-marigold bg-marigold-50/40')}>
-            <h2 className="font-bold text-ink-800 mb-3">Playlist loop <span className="text-ink-300 font-normal text-sm">— plays top to bottom, then repeats</span></h2>
+          <Card className={clsx('lg:col-span-3 p-4 transition-colors', isOver && 'ring-2 ring-primary-500/40 bg-primary-500/10')}>
+            <h2 className="font-bold text-txt-primary mb-3">Playlist loop <span className="text-txt-muted font-normal text-sm">— plays top to bottom, then repeats</span></h2>
             <div ref={setDropRef} className="min-h-[420px]">
               {items.length === 0 ? (
                 <EmptyState
@@ -442,9 +442,9 @@ export default function PlaylistBuilderPage() {
 
         <DragOverlay>
           {activeDrag && String(activeDrag.id).startsWith('lib:') && activeDrag.data.current?.media && (
-            <div className="flex items-center gap-2.5 rounded-lg border-2 border-marigold bg-white p-2 shadow-xl w-64">
+            <div className="flex items-center gap-2.5 rounded-lg border-2 border-primary-500/50 bg-card-inner p-2 shadow-glow-primary w-64">
               <MiniThumb media={activeDrag.data.current.media} className="h-10 w-16 shrink-0" />
-              <p className="text-xs font-semibold text-ink-700 truncate">{activeDrag.data.current.media.name}</p>
+              <p className="text-xs font-semibold text-txt-primary truncate">{activeDrag.data.current.media.name}</p>
             </div>
           )}
         </DragOverlay>

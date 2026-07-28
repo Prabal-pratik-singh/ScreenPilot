@@ -20,7 +20,7 @@ function Thumb({ asset, className }) {
   const Icon = TYPE_ICON[asset.type] || ImageIcon
   if (!asset.hasThumb || failed) {
     return (
-      <div className={clsx('flex items-center justify-center bg-ink-800 text-ink-300', className)}>
+      <div className={clsx('flex items-center justify-center bg-card-inner text-txt-muted', className)}>
         <Icon size={32} />
       </div>
     )
@@ -31,7 +31,7 @@ function Thumb({ asset, className }) {
       alt={asset.name}
       loading="lazy"
       onError={() => setFailed(true)}
-      className={clsx('object-cover bg-ink-800', className)}
+      className={clsx('object-cover bg-card-inner', className)}
     />
   )
 }
@@ -43,7 +43,7 @@ function PreviewModal({ asset, onClose }) {
     <Modal open={!!asset} onClose={onClose} title={asset?.name || ''} wide>
       {asset && (
         <div>
-          <div className="rounded-xl overflow-hidden bg-ink-900 flex items-center justify-center min-h-[300px]">
+          <div className="rounded-xl overflow-hidden bg-card-inner flex items-center justify-center min-h-[300px]">
             {asset.type === 'VIDEO' && (
               <video src={mediaFileSrc(asset)} controls autoPlay className="max-h-[60vh] w-full" />
             )}
@@ -54,7 +54,7 @@ function PreviewModal({ asset, onClose }) {
               <iframe title={asset.name} src={mediaFileSrc(asset)} className="w-full h-[60vh] bg-white" />
             )}
           </div>
-          <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 text-sm text-ink-500">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 mt-4 text-sm text-txt-secondary">
             <span>{TYPE_LABEL[asset.type]}</span>
             <span>{fmtBytes(asset.sizeBytes)}</span>
             {asset.width && <span>{asset.width}×{asset.height}</span>}
@@ -64,7 +64,7 @@ function PreviewModal({ asset, onClose }) {
           </div>
           {asset.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {asset.tags.map((t) => <Badge key={t} tone="marigold">{t}</Badge>)}
+              {asset.tags.map((t) => <Badge key={t} tone="primary">{t}</Badge>)}
             </div>
           )}
         </div>
@@ -106,7 +106,7 @@ function EditModal({ asset, folders, onClose }) {
         <Field label="Tags" hint="Comma separated, e.g. diwali, offers">
           <input className="input" value={tags} onChange={(e) => setTags(e.target.value)} />
         </Field>
-        {error && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+        {error && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{error}</div>}
         <div className="flex justify-end gap-2">
           <button type="button" className="btn-ghost" onClick={onClose}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={mutation.isPending}>
@@ -138,27 +138,27 @@ function DeleteModal({ asset, onClose }) {
   const playlists = usage.data?.playlists || []
   return (
     <Modal open onClose={onClose} title="Delete media">
-      <p className="text-sm text-ink-600">
+      <p className="text-sm text-txt-secondary">
         Delete <span className="font-semibold">"{asset.name}"</span>? The file is removed from the library
         (soft delete) and will stop playing everywhere.
       </p>
       {usage.isLoading ? (
         <Skeleton className="h-10 w-full mt-3" />
       ) : playlists.length > 0 ? (
-        <div className="mt-3 rounded-lg bg-warning-100 text-warning-700 text-sm px-3 py-2.5">
+        <div className="mt-3 rounded-lg bg-warning/15 text-warning text-sm px-3 py-2.5">
           <p className="font-bold">Used in {playlists.length} playlist{playlists.length > 1 ? 's' : ''}:</p>
           <ul className="list-disc ml-5 mt-1">
             {playlists.map((p) => <li key={p.id}>{p.name}</li>)}
           </ul>
         </div>
       ) : (
-        <p className="text-xs text-ink-400 mt-3">Not used in any playlist.</p>
+        <p className="text-xs text-txt-muted mt-3">Not used in any playlist.</p>
       )}
-      {error && <div className="mt-3 rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+      {error && <div className="mt-3 rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{error}</div>}
       <div className="mt-6 flex justify-end gap-2">
         <button className="btn-ghost" onClick={onClose}>Cancel</button>
         <button className="btn-danger" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-          {mutation.isPending ? <Spinner className="h-4 w-4 border-white/40 border-t-white" /> : 'Delete anyway'}
+          {mutation.isPending ? <Spinner className="h-4 w-4 border-danger/40 border-t-danger" /> : 'Delete anyway'}
         </button>
       </div>
     </Modal>
@@ -243,7 +243,7 @@ export default function MediaPage() {
           uploadFiles(e.dataTransfer.files)
         }
       }}
-      className={clsx('min-h-[70vh] rounded-xl transition-colors', dragOver && 'ring-4 ring-marigold/50 bg-marigold-50/40')}
+      className={clsx('min-h-[70vh] rounded-xl transition-colors', dragOver && 'ring-4 ring-primary-500/40 bg-primary-500/10')}
     >
       <PageHeader
         title="Media Library"
@@ -275,14 +275,14 @@ export default function MediaPage() {
           {uploads.map((u) => (
             <div key={u.id}>
               <div className="flex justify-between text-xs font-semibold mb-1">
-                <span className="text-ink-600 truncate">{u.name}</span>
-                <span className={u.status === 'error' ? 'text-danger' : 'text-ink-400'}>
+                <span className="text-txt-secondary truncate">{u.name}</span>
+                <span className={u.status === 'error' ? 'text-danger' : 'text-txt-muted'}>
                   {u.status === 'error' ? u.error : u.status === 'done' ? 'Done' : `${u.progress}%`}
                 </span>
               </div>
-              <div className="h-1.5 rounded-full bg-ink-100 overflow-hidden">
+              <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
                 <div
-                  className={clsx('h-full transition-all', u.status === 'error' ? 'bg-danger' : u.status === 'done' ? 'bg-success' : 'bg-marigold')}
+                  className={clsx('h-full transition-all', u.status === 'error' ? 'bg-danger' : u.status === 'done' ? 'bg-success' : 'bg-grad-primary')}
                   style={{ width: `${u.progress}%` }}
                 />
               </div>
@@ -294,7 +294,7 @@ export default function MediaPage() {
       <Card className="p-4 mb-4">
         <div className="flex flex-wrap items-center gap-3">
           <div className="relative flex-1 min-w-[180px]">
-            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+            <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-txt-muted" />
             <input className="input pl-9" placeholder="Search media…" value={filters.search} onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))} />
           </div>
           <select className="input max-w-[130px]" value={filters.type} onChange={(e) => setFilters((f) => ({ ...f, type: e.target.value }))}>
@@ -311,7 +311,7 @@ export default function MediaPage() {
             <option value="">All folders</option>
             {(folders.data || []).map((f) => <option key={f}>{f}</option>)}
           </select>
-          <label className="flex items-center gap-2 text-sm text-ink-600 font-medium cursor-pointer">
+          <label className="flex items-center gap-2 text-sm text-txt-secondary font-medium cursor-pointer">
             <input type="checkbox" checked={filters.mine} onChange={(e) => setFilters((f) => ({ ...f, mine: e.target.checked }))} />
             Uploaded by me
           </label>
@@ -342,20 +342,20 @@ export default function MediaPage() {
               <div className="relative aspect-video">
                 <Thumb asset={m} className="absolute inset-0 h-full w-full" />
                 {m.type === 'VIDEO' && m.durationSeconds && (
-                  <span className="absolute bottom-1.5 right-1.5 rounded bg-ink-900/80 text-white text-[10px] font-bold px-1.5 py-0.5">
+                  <span className="absolute bottom-1.5 right-1.5 rounded bg-card-inner/80 text-white text-[10px] font-bold px-1.5 py-0.5">
                     {fmtSeconds(m.durationSeconds)}
                   </span>
                 )}
-                <div className="absolute inset-0 bg-ink-900/0 group-hover:bg-ink-900/50 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
-                  <button className="rounded-lg bg-white/95 p-2 hover:bg-white" title="Preview" onClick={() => setPreview(m)}>
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/60 transition-colors flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100">
+                  <button className="rounded-lg bg-card/90 text-txt-primary p-2 hover:bg-card" title="Preview" onClick={() => setPreview(m)}>
                     {m.type === 'VIDEO' ? <Play size={15} /> : <Eye size={15} />}
                   </button>
                   {canEdit && (
                     <>
-                      <button className="rounded-lg bg-white/95 p-2 hover:bg-white" title="Edit" onClick={() => setEditing(m)}>
+                      <button className="rounded-lg bg-card/90 text-txt-primary p-2 hover:bg-card" title="Edit" onClick={() => setEditing(m)}>
                         <Pencil size={15} />
                       </button>
-                      <button className="rounded-lg bg-white/95 p-2 hover:bg-white text-danger" title="Delete" onClick={() => setDeleting(m)}>
+                      <button className="rounded-lg bg-card/90 p-2 hover:bg-card text-danger" title="Delete" onClick={() => setDeleting(m)}>
                         <Trash2 size={15} />
                       </button>
                     </>
@@ -363,19 +363,19 @@ export default function MediaPage() {
                 </div>
               </div>
               <div className="p-3">
-                <p className="text-sm font-semibold text-ink-800 truncate" title={m.name}>{m.name}</p>
-                <p className="text-[11px] text-ink-400 mt-0.5">
+                <p className="text-sm font-semibold text-txt-primary truncate" title={m.name}>{m.name}</p>
+                <p className="text-[11px] text-txt-muted mt-0.5">
                   {TYPE_LABEL[m.type]} · {fmtBytes(m.sizeBytes)} · {timeAgo(m.uploadedAt)}
                 </p>
                 {(m.folder || m.tags?.length > 0) && (
                   <div className="flex flex-wrap items-center gap-1 mt-1.5">
                     {m.folder && (
-                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-ink-500 bg-ink-50 rounded px-1.5 py-0.5">
+                      <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-txt-secondary bg-hover rounded px-1.5 py-0.5">
                         <FolderOpen size={10} /> {m.folder}
                       </span>
                     )}
                     {(m.tags || []).slice(0, 2).map((t) => (
-                      <span key={t} className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-marigold-800 bg-marigold-100 rounded px-1.5 py-0.5">
+                      <span key={t} className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-primary-400 bg-primary-500/10 rounded px-1.5 py-0.5">
                         <Tag size={10} /> {t}
                       </span>
                     ))}

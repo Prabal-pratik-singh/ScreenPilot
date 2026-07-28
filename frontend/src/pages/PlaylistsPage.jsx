@@ -74,9 +74,9 @@ export default function PlaylistsPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {playlists.data.map((p) => (
-            <Card key={p.id} className="p-5 hover:shadow-lg transition-shadow flex flex-col">
+            <Card key={p.id} className="p-5 card-lift flex flex-col">
               <div className="flex items-start justify-between">
-                <div className="rounded-xl bg-ink-800 text-marigold p-2.5">
+                <div className="rounded-xl bg-card-inner text-primary-400 p-2.5">
                   <ListVideo size={20} />
                 </div>
                 {canEdit && (
@@ -85,14 +85,14 @@ export default function PlaylistsPage() {
                   </button>
                 )}
               </div>
-              <Link to={`/playlists/${p.id}`} className="font-bold text-ink-800 mt-3 hover:text-marigold-700">
+              <Link to={`/playlists/${p.id}`} className="font-bold text-txt-primary mt-3 hover:text-primary-400">
                 {p.name}
               </Link>
-              <p className="text-sm text-ink-400 mt-0.5 flex-1">{p.description || 'No description'}</p>
-              <div className="flex items-center gap-4 mt-3 text-xs font-semibold text-ink-500">
+              <p className="text-sm text-txt-secondary mt-0.5 flex-1">{p.description || 'No description'}</p>
+              <div className="flex items-center gap-4 mt-3 text-xs font-semibold text-txt-secondary">
                 <span>{p.itemCount} item{p.itemCount === 1 ? '' : 's'}</span>
-                <span className="flex items-center gap-1"><Clock size={13} className="text-ink-300" /> {fmtSeconds(p.totalDurationSeconds)} loop</span>
-                <span className="ml-auto text-ink-300 font-normal">updated {timeAgo(p.updatedAt)}</span>
+                <span className="flex items-center gap-1"><Clock size={13} className="text-txt-muted" /> {fmtSeconds(p.totalDurationSeconds)} loop</span>
+                <span className="ml-auto text-txt-muted font-normal">updated {timeAgo(p.updatedAt)}</span>
               </div>
             </Card>
           ))}
@@ -107,7 +107,7 @@ export default function PlaylistsPage() {
           <Field label="Description">
             <textarea className="input" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Festive promos for entrance screens" />
           </Field>
-          {error && <div className="rounded-lg bg-danger-100 text-danger-700 text-sm px-3 py-2">{error}</div>}
+          {error && <div className="rounded-lg bg-danger/15 text-danger text-sm px-3 py-2">{error}</div>}
           <div className="flex justify-end gap-2">
             <button type="button" className="btn-ghost" onClick={() => setCreateOpen(false)}>Cancel</button>
             <button type="submit" className="btn-primary" disabled={createMutation.isPending}>
