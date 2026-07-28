@@ -4,37 +4,69 @@
 
 @layer base {
   html {
-    @apply antialiased;
+    @apply antialiased scroll-smooth;
   }
   body {
     @apply bg-cream text-ink-800 font-sans;
+    /* faint warm radial washes so the background isn't a flat color */
+    background-image:
+      radial-gradient(1100px 500px at 85% -10%, rgba(246, 168, 33, 0.06), transparent 60%),
+      radial-gradient(900px 480px at -10% 100%, rgba(22, 35, 63, 0.05), transparent 55%);
+    background-attachment: fixed;
+  }
+  /* brand-colored text selection */
+  ::selection {
+    @apply bg-marigold/30 text-ink-900;
+  }
+  /* slim, subtle scrollbars (WebKit browsers incl. Android TV WebView) */
+  ::-webkit-scrollbar {
+    width: 9px;
+    height: 9px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-ink-200 rounded-full;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-ink-300;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-white rounded-xl shadow-card border border-ink-100/60;
+    @apply bg-white rounded-2xl shadow-card border border-ink-100/60 transition-shadow duration-300;
+  }
+  /* opt-in hover treatment for clickable cards: lift + deeper shadow */
+  .card-lift {
+    @apply transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5;
   }
   .input {
-    @apply w-full rounded-lg border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder-ink-300 focus:outline-none focus:ring-2 focus:ring-marigold/60 focus:border-marigold;
+    @apply w-full rounded-xl border border-ink-200 bg-white px-3 py-2 text-sm text-ink-800 placeholder-ink-300 transition-shadow duration-200 focus:outline-none focus:ring-2 focus:ring-marigold/60 focus:border-marigold focus:shadow-[0_0_0_4px_rgba(246,168,33,0.12)];
   }
   .label {
     @apply block text-xs font-semibold uppercase tracking-wide text-ink-400 mb-1;
   }
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-sm font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.97];
   }
   .btn-primary {
-    @apply btn bg-marigold text-ink-900 hover:bg-marigold-400 focus:ring-marigold;
+    @apply btn text-ink-900 focus:ring-marigold shadow-md shadow-marigold/25 hover:shadow-lg hover:shadow-marigold/35 hover:brightness-105;
+    background-image: linear-gradient(to bottom, #f9c456, #f6a821);
   }
   .btn-secondary {
-    @apply btn bg-ink-800 text-white hover:bg-ink-700 focus:ring-ink-400;
+    @apply btn text-white focus:ring-ink-400 shadow-md shadow-ink-900/20 hover:shadow-lg;
+    background-image: linear-gradient(to bottom, #212f48, #16233f);
   }
   .btn-ghost {
-    @apply btn bg-transparent text-ink-600 hover:bg-ink-50 border border-ink-200 focus:ring-ink-200;
+    @apply btn bg-white/60 text-ink-600 hover:bg-white hover:border-ink-300 hover:shadow-sm border border-ink-200 focus:ring-ink-200;
   }
   .btn-danger {
-    @apply btn bg-danger text-white hover:bg-red-600 focus:ring-danger;
+    @apply btn text-white focus:ring-danger shadow-md shadow-danger/25 hover:shadow-lg hover:brightness-105;
+    background-image: linear-gradient(to bottom, #f87171, #ef4444);
   }
 }
 

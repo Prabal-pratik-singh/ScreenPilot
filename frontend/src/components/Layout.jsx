@@ -3,7 +3,7 @@
 // into React Router's <Outlet />. Nav items hide themselves when the user's
 // role is below the item's minRole. Also mounts usePortalSocket so live screen
 // status updates flow while any portal page is open.
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   MonitorPlay,
@@ -49,13 +49,16 @@ const ROLE_LABEL = {
 export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
   usePortalSocket(true)
 
   return (
     <div className="flex min-h-screen">
-      <aside className="fixed inset-y-0 left-0 w-60 bg-ink-800 text-white flex flex-col z-40">
-        <div className="px-5 py-5 border-b border-white/10">
+      {/* navy gradient rail with a faint marigold glow at the top */}
+      <aside className="fixed inset-y-0 left-0 w-60 bg-gradient-to-b from-ink-800 via-ink-800 to-ink-900 text-white flex flex-col z-40 shadow-[4px_0_24px_rgba(13,21,38,0.25)]">
+        <div className="relative px-5 py-5 border-b border-white/10 overflow-hidden">
+          <div className="absolute -top-10 -right-10 h-28 w-28 rounded-full bg-marigold/20 blur-2xl" />
           <Logo dark />
           <p className="text-[11px] uppercase tracking-widest text-ink-300 mt-1">Digital Signage</p>
         </div>
@@ -67,14 +70,14 @@ export default function Layout() {
               end={item.end}
               className={({ isActive }) =>
                 clsx(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors',
+                  'group flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200',
                   isActive
-                    ? 'bg-marigold text-ink-900'
-                    : 'text-ink-100 hover:bg-white/10 hover:text-white',
+                    ? 'bg-gradient-to-r from-marigold-400 to-marigold text-ink-900 shadow-glow-marigold font-semibold'
+                    : 'text-ink-100 hover:bg-white/10 hover:text-white hover:translate-x-0.5',
                 )
               }
             >
-              <item.icon size={18} />
+              <item.icon size={18} className="transition-transform duration-200 group-hover:scale-110" />
               {item.label}
             </NavLink>
           ))}
@@ -85,14 +88,14 @@ export default function Layout() {
       </aside>
 
       <div className="flex-1 ml-60 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-cream/90 backdrop-blur border-b border-ink-100/70">
+        <header className="sticky top-0 z-30 bg-cream/80 backdrop-blur-md border-b border-ink-100/70">
           <div className="flex items-center justify-end px-6 h-14 gap-4">
             <div className="relative">
               <button
                 onClick={() => setMenuOpen((v) => !v)}
-                className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-ink-50"
+                className="flex items-center gap-2.5 rounded-xl px-2 py-1.5 transition-colors hover:bg-white hover:shadow-sm"
               >
-                <div className="h-8 w-8 rounded-full bg-ink-800 text-marigold flex items-center justify-center text-sm font-bold">
+                <div className="h-8 w-8 rounded-full bg-gradient-to-br from-ink-700 to-ink-900 text-marigold flex items-center justify-center text-sm font-bold ring-2 ring-marigold/40">
                   {user?.fullName?.[0]?.toUpperCase() || '?'}
                 </div>
                 <div className="text-left hidden sm:block">
@@ -124,7 +127,8 @@ export default function Layout() {
             </div>
           </div>
         </header>
-        <main className="flex-1 px-6 py-6 max-w-[1500px] w-full mx-auto">
+        {/* key on the path re-triggers the fade-up entrance on every page change */}
+        <main key={location.pathname} className="flex-1 px-6 py-6 max-w-[1500px] w-full mx-auto animate-fade-up">
           <Outlet />
         </main>
       </div>

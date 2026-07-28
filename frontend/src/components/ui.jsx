@@ -28,10 +28,14 @@ export function PageHeader({ title, subtitle, actions }) {
   )
 }
 
-/** green = online, red = offline, amber = warning/degraded */
+/** green = online, red = offline, amber = warning/degraded — with a soft glow */
 export function StatusDot({ status, className, pulse = false }) {
   const color =
-    status === 'ONLINE' ? 'bg-success' : status === 'WARNING' ? 'bg-warning' : 'bg-danger'
+    status === 'ONLINE'
+      ? 'bg-success shadow-glow-success'
+      : status === 'WARNING'
+        ? 'bg-warning'
+        : 'bg-danger shadow-glow-danger'
   return (
     <span className={clsx('relative inline-flex h-2.5 w-2.5 rounded-full', color, className)}>
       {pulse && status === 'ONLINE' && (
@@ -69,8 +73,8 @@ export function Modal({ open, onClose, title, children, wide = false }) {
   if (!open) return null
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-ink-900/50 backdrop-blur-[2px]" onClick={onClose} />
-      <div className={clsx('relative card w-full max-h-[90vh] overflow-y-auto p-6', wide ? 'max-w-3xl' : 'max-w-lg')}>
+      <div className="absolute inset-0 bg-ink-900/50 backdrop-blur-[3px]" onClick={onClose} />
+      <div className={clsx('relative card animate-pop-in w-full max-h-[90vh] overflow-y-auto p-6', wide ? 'max-w-3xl' : 'max-w-lg')}>
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-bold text-ink-800">{title}</h2>
           <button onClick={onClose} className="text-ink-300 hover:text-ink-600 rounded-lg p-1">
@@ -89,16 +93,23 @@ export function Spinner({ className }) {
   )
 }
 
-// Grey pulsing placeholder shown while data is loading.
+// Loading placeholder with a moving shimmer highlight instead of a flat pulse.
 export function Skeleton({ className }) {
-  return <div className={clsx('animate-pulse rounded-lg bg-ink-100/70', className)} />
+  return (
+    <div
+      className={clsx(
+        'animate-shimmer rounded-xl bg-ink-100/70 bg-gradient-to-r from-ink-100/70 via-white/80 to-ink-100/70 bg-[length:800px_100%]',
+        className,
+      )}
+    />
+  )
 }
 
 // Friendly "nothing here yet" block with icon, hint text and optional CTA.
 export function EmptyState({ icon: Icon = Inbox, title, hint, action }) {
   return (
     <div className="flex flex-col items-center justify-center py-14 text-center">
-      <div className="rounded-2xl bg-ink-50 p-4 mb-3">
+      <div className="rounded-2xl bg-gradient-to-br from-marigold-50 to-ink-50 ring-1 ring-ink-100/70 p-4 mb-3">
         <Icon size={28} className="text-ink-300" />
       </div>
       <p className="font-semibold text-ink-600">{title}</p>

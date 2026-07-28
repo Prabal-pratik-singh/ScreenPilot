@@ -12,24 +12,28 @@ import { Card, PageHeader, Skeleton, StatusDot, EmptyState } from '../components
 import ScreensMap from '../components/ScreensMap'
 import { offlineFor } from '../lib/format'
 
-// One headline number with an icon; shows a skeleton while loading.
+// One headline number with a gradient icon chip and a colored accent bar
+// along the top edge; shows a skeleton while loading.
 function StatCard({ icon: Icon, label, value, tone, loading }) {
   const tones = {
-    ink: 'bg-ink-50 text-ink-600',
-    success: 'bg-success-100 text-success-700',
-    danger: 'bg-danger-100 text-danger-700',
-    warning: 'bg-warning-100 text-warning-700',
+    ink: { chip: 'bg-gradient-to-br from-ink-600 to-ink-800 text-marigold shadow-ink-800/30', bar: 'from-ink-400 to-ink-600' },
+    success: { chip: 'bg-gradient-to-br from-emerald-400 to-emerald-600 text-white shadow-emerald-500/30', bar: 'from-emerald-300 to-emerald-500' },
+    danger: { chip: 'bg-gradient-to-br from-rose-400 to-rose-600 text-white shadow-rose-500/30', bar: 'from-rose-300 to-rose-500' },
+    warning: { chip: 'bg-gradient-to-br from-amber-300 to-amber-500 text-white shadow-amber-500/30', bar: 'from-amber-200 to-amber-400' },
   }
+  const t = tones[tone]
   return (
-    <Card className="p-5 flex items-center gap-4">
-      <div className={clsx('rounded-xl p-3', tones[tone])}>
+    <Card className="card-lift group relative overflow-hidden p-5 flex items-center gap-4">
+      {/* colored accent strip along the top of the card */}
+      <div className={clsx('absolute inset-x-0 top-0 h-1 bg-gradient-to-r opacity-80', t.bar)} />
+      <div className={clsx('rounded-2xl p-3 shadow-lg transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3', t.chip)}>
         <Icon size={22} />
       </div>
       <div>
         {loading ? (
           <Skeleton className="h-7 w-14 mb-1" />
         ) : (
-          <p className="text-2xl font-bold text-ink-800 leading-tight">{value}</p>
+          <p className="text-3xl font-bold text-ink-800 leading-tight tabular-nums tracking-tight">{value}</p>
         )}
         <p className="text-xs font-medium text-ink-400">{label}</p>
       </div>

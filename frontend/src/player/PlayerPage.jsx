@@ -45,13 +45,20 @@ function ISTClock({ className }) {
 // the portal, plus expiry / connection-error states.
 function PairingScreen({ code, expired, error }) {
   return (
-    <div className="h-full w-full bg-ink-800 text-white flex flex-col items-center justify-center gap-10 p-8">
+    <div className="h-full w-full bg-gradient-to-br from-ink-800 via-ink-900 to-[#0A1120] text-white flex flex-col items-center justify-center gap-10 p-8 relative overflow-hidden">
+      {/* drifting glow blobs matching the portal login backdrop */}
+      <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-marigold/15 blur-3xl animate-float" />
+      <div className="absolute -bottom-32 -left-24 h-96 w-96 rounded-full bg-marigold/10 blur-3xl animate-float [animation-delay:3s]" />
       <Logo dark size="lg" />
-      <div className="text-center">
+      <div className="text-center relative">
         <p className="text-white/60 text-xl mb-6">Enter this code in the portal to pair this screen</p>
         <div className="flex gap-3 justify-center">
           {(code || '······').split('').map((ch, i) => (
-            <span key={i} className="w-20 h-24 rounded-2xl bg-white/10 border border-white/15 flex items-center justify-center text-6xl font-bold text-marigold">
+            <span
+              key={`${code}-${i}`}
+              className="w-20 h-24 rounded-2xl bg-gradient-to-b from-white/15 to-white/5 border border-marigold/30 shadow-[0_8px_30px_rgba(246,168,33,0.15)] flex items-center justify-center text-6xl font-bold text-marigold animate-pop-in"
+              style={{ animationDelay: `${i * 70}ms` }}
+            >
               {ch}
             </span>
           ))}

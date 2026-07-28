@@ -36,14 +36,25 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink-800 flex items-center justify-center p-4 relative overflow-hidden">
-      <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-marigold/10" />
-      <div className="absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-marigold/5" />
-      <div className="w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-ink-800 via-ink-900 to-[#0A1120] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* drifting glow blobs give the navy backdrop depth without any images */}
+      <div className="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-marigold/15 blur-3xl animate-float" />
+      <div className="absolute -bottom-40 -left-24 h-[28rem] w-[28rem] rounded-full bg-marigold/10 blur-3xl animate-float [animation-delay:2s]" />
+      <div className="absolute top-1/3 left-1/2 h-64 w-64 rounded-full bg-ink-500/20 blur-3xl animate-float [animation-delay:4s]" />
+      {/* faint grid texture over the whole backdrop */}
+      <div
+        className="absolute inset-0 opacity-[0.05]"
+        style={{
+          backgroundImage:
+            'linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)',
+          backgroundSize: '44px 44px',
+        }}
+      />
+      <div className="w-full max-w-md relative animate-fade-up">
         <div className="flex justify-center mb-8">
           <Logo dark size="lg" />
         </div>
-        <div className="card p-8">
+        <div className="card p-8 shadow-2xl shadow-black/40 border-white/10 ring-1 ring-white/10">
           <h1 className="text-xl font-bold text-ink-800">Sign in to the portal</h1>
           <p className="text-sm text-ink-400 mt-1 mb-6">Manage screens, content and schedules across the network.</p>
           <form onSubmit={submit} className="space-y-4">
