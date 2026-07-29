@@ -202,9 +202,10 @@ export default function Layout() {
                 </button>
                 {menuOpen && (
                   <>
-                    {/* invisible backdrop: clicking anywhere outside closes the menu */}
-                    <div className="fixed inset-0 z-10" onClick={() => setMenuOpen(false)} />
-                    <div className="absolute right-0 mt-1 w-48 card p-1.5 z-20 animate-pop-in">
+                    {/* invisible backdrop: clicking anywhere outside closes the menu
+                        (z-40/z-50 stay above the Leaflet map's internal panes) */}
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                    <div className="absolute right-0 mt-1 w-48 card p-1.5 z-50 animate-pop-in shadow-2xl shadow-black/50">
                       <div className="px-3 py-2 border-b border-subtle mb-1">
                         <p className="text-xs text-txt-muted truncate">{user?.email}</p>
                       </div>

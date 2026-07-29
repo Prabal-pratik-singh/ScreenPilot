@@ -90,9 +90,10 @@ export default function NotificationsMenu() {
 
       {open && (
         <>
-          {/* invisible backdrop: clicking anywhere outside closes the panel */}
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-20 mt-2 w-80 card p-2 animate-pop-in">
+          {/* invisible backdrop: clicking anywhere outside closes the panel
+              (z-40/z-50 keep the panel above the Leaflet map's internal panes) */}
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 z-50 mt-2 w-80 card p-2 animate-pop-in shadow-2xl shadow-black/50">
             <div className="flex items-center justify-between border-b border-subtle px-3 py-2 mb-1">
               <p className="text-sm font-semibold text-txt-primary">Notifications</p>
               <span className="text-xs text-txt-muted">{items.length} active</span>

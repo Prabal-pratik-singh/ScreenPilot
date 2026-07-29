@@ -82,7 +82,9 @@ function LegendChip({ color, label }) {
 export default function ScreensMap({ screens, height = 460 }) {
   const clusters = useMemo(() => clusterByCity(screens || []), [screens])
   return (
-    <div style={{ height }} className="relative overflow-hidden rounded-tile border border-subtle">
+    // `isolate z-0` traps Leaflet's internal 400-1000 z-index panes inside
+    // this box so dropdowns/modals elsewhere on the page stack above the map
+    <div style={{ height }} className="relative isolate z-0 overflow-hidden rounded-tile border border-subtle">
       <MapContainer
         center={CENTER}
         zoom={ZOOM}
